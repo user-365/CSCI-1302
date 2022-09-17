@@ -1,2 +1,3 @@
 # CSCI-1302
-Software Development
+## Course Name: Software Development
+not much else to say..
