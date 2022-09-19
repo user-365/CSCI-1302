@@ -1,6 +1,7 @@
 {
     "java.project.referencedLibraries": [
         "lib/**/*.jar",
-        "cs1302-c4-alpha/lib/cs1302-gameutil.jar"
+        "cs1302-c4-alpha/lib/cs1302-gameutil.jar",
+        "Project1/lib/cs1302-gameutil.jar"
     ]
 }
