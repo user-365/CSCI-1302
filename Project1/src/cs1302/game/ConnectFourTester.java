@@ -491,10 +491,11 @@ public class ConnectFourTester {
             System.out.println(message);
             return false;
         } // if
-        System.err.println(game.getNumDropped());
+        System.err.println("numdropped: "+game.getNumDropped());
         System.err.println("method: "+ game.isLastDropConnectFour());
-        System.err.println();
         System.err.println("iswon: "+ isWon);
+        System.err.println("all blue: "+ConnectFour.q(Token.BLUE, Token.BLUE, Token.BLUE, Token.BLUE));
+        System.err.println("3 blue one red: "+ConnectFour.q(Token.BLUE, Token.BLUE, Token.BLUE, Token.RED));
         if (game.isLastDropConnectFour() == isWon) {
             if (!isWon) {
                 pass("isLastDropConnectFour correctly says game is " +

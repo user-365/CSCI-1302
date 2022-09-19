@@ -345,42 +345,28 @@ public class ConnectFour {
         System.out.println("west: " + w);
         // South
         s = this.rows - r > 3;
-        System.out.println("sast: " + s);
+        System.out.println("south: " + s);
         // North
         n = r >= 3;
-        System.out.println("nest: " + n);
+        System.out.println("north: " + n);
         
-        boolean b = false;
-
-        // if east
-        if (e) {
-            // if southeast
-            if (s) {
-                b |= q(lastToken, grid[r+3][c+3], grid[r+3][c+1], grid[r+3][c+2]);
-            } // if
-            // if northeast
-            if (n) {
-                return q(lastToken, grid[r-3][c+3], grid[r-3][c+1], grid[r-3][c+2]);
-            }
-            return q(lastToken, grid[r][c+3], grid[r][c+1], grid[r][c+2]);
-        } // if
-        // if west
-        if (w) {
-            // if southwest
-            if (s) {
-                return q(lastToken, grid[r+3][c-3], grid[r+1][c-1], grid[r+2][c-2]);
-            } // if
-            // if northwest
-            if (n) {
-                return q(lastToken, grid[r-3][c-3], grid[r-1][c-1], grid[r-2][c-2]);
-            }
-            return q(lastToken, grid[r][c-3], grid[r][c-1], grid[r][c-2]);
-        } // if
-        // if south
-        if (s) {
-            return q(lastToken, grid[r+3][c], grid[r+1][c], grid[r+2][c]);
-        }
-        return b;
+        // used to be a nested-if tree,
+        // pardon the heavy-duty short-circuiting.
+        return false // default: not a connect-four
+                // -east
+                || e && (q(lastToken, grid[r][c+3], grid[r][c+1], grid[r][c+2])
+                    // southeast
+                    || s && q(lastToken, grid[r+3][c+3], grid[r+1][c+1], grid[r+2][c+2])
+                    // northeast
+                    || n && q(lastToken, grid[r-3][c+3], grid[r-1][c+1], grid[r-2][c+2]))
+                // -west
+                || w && (q(lastToken, grid[r][c-3], grid[r][c-1], grid[r][c-2])
+                    // southwest
+                    || s && q(lastToken, grid[r+3][c-3], grid[r+1][c-1], grid[r+2][c-2])
+                    // northwest
+                    || n && q(lastToken, grid[r-3][c-3], grid[r-1][c-1], grid[r-2][c-2]))
+                // south only
+                || s && q(lastToken, grid[r+3][c], grid[r+1][c], grid[r+2][c]);
 
         // secret regex mode?????
     } // isLastDropConnectFour
@@ -413,7 +399,8 @@ public class ConnectFour {
     //static boolean q (Token x, Token y) { return x == y; }
 
     /**
-     * Checks whether all the elements of an array of {@code Token} enums are equal.
+     * Token Equality: Checks whether all the elements of an array of {@code Token} enums are
+     * equal, recursively.
      * Inspired by <a href="https://stackoverflow.com/a/8198279">this answer
      * on Stack Exchange</a>.
      * 
@@ -421,8 +408,9 @@ public class ConnectFour {
      * @return {@code true} if they are ALL equal, {@code false} otherwise
      */
     static boolean q (Token...z) {
-        Token[] w = Arrays.copyOfRange(z, 1, z.length - 1);
-        return z[0] == z[1] && z.length < 3 ? true : q(w);
+        //Token[] w = Arrays.copyOfRange(z, 1, z.length);
+        return z[0] == z[1]
+                && (z.length < 3 ? true : q(Arrays.copyOfRange(z, 1, z.length)));
     }
 
     //----------------------------------------------------------------------------------------------
