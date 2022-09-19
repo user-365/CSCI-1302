@@ -5,8 +5,10 @@ import cs1302.gameutil.Token;
 import cs1302.gameutil.GamePhase;
 
 /**
- * A command-line program for testing {@link cs1302.game.ConnectFour}. Students should refer to
- * the <a href="https://github.com/cs1302uga/cs1302-c4-alpha">project description</a> for more
+ * A command-line program for testing {@link cs1302.game.ConnectFour}. Students
+ * should refer to
+ * the <a href="https://github.com/cs1302uga/cs1302-c4-alpha">project
+ * description</a> for more
  * details about what should be included in this class.
  */
 public class ConnectFourTester {
@@ -16,9 +18,9 @@ public class ConnectFourTester {
     // game object. In other words, they hold the "right answer". What you
     // see here are default values. They are modified, as needed, throughout
     // this tester.
-    private static int numDropped =    0;
-    private static int lastDropCol =  -1;
-    private static int lastDropRow =  -1;
+    private static int numDropped = 0;
+    private static int lastDropCol = -1;
+    private static int lastDropRow = -1;
     private static boolean isWon = false;
 
     /**
@@ -31,7 +33,8 @@ public class ConnectFourTester {
     } // header
 
     /**
-     * Entry point to the {@link cs1302.game.ConnectFourTester} program. This program is not
+     * Entry point to the {@link cs1302.game.ConnectFourTester} program. This
+     * program is not
      * expected to support command-line arguments.
      *
      * @param args the command-line arguments (not used)
@@ -48,15 +51,16 @@ public class ConnectFourTester {
         testNoStatic();
     } // main
 
-    //----------------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------------
     // TEST METHODS - Each provided test is separated with a heading like this one.
-    // Each test requires multiple, separate methods. Pay close attention to these dependencies.
+    // Each test requires multiple, separate methods. Pay close attention to these
+    // dependencies.
     // You should add more methods to test your code under different scenarios.
-    //----------------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------------
 
-    //----------------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------------
     // TEST CONSTRUCTOR
-    //----------------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------------
 
     /**
      * Test the constructor. This runs several test cases.
@@ -70,7 +74,8 @@ public class ConnectFourTester {
 
     /**
      * Constructor test: the constructor should not throw an
-     * {@link java.lang.IllegalArgumentException} when {@code rows} and {@code cols} are supported.
+     * {@link java.lang.IllegalArgumentException} when {@code rows} and {@code cols}
+     * are supported.
      */
     public static void testConstructor1() {
         System.out.print("testConstructor1: ");
@@ -112,13 +117,15 @@ public class ConnectFourTester {
         } // try
     } // testConstructor3
 
-    // Recommendation to students: Add a textConstructor4 and testConstrucor5 method that makes
-    // sure the constructor throws an IllegalArgumentException when cols is too small and too
+    // Recommendation to students: Add a textConstructor4 and testConstrucor5 method
+    // that makes
+    // sure the constructor throws an IllegalArgumentException when cols is too
+    // small and too
     // big, respectively.
 
-    //----------------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------------
     // TEST getRows
-    //----------------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------------
 
     /**
      * Test the {@code getRows} method.
@@ -144,17 +151,16 @@ public class ConnectFourTester {
             if (game.getRows() == size) {
                 System.out.println("PASS");
             } else {
-                String message =
-                    String.format("getRows returned %d on a board " +
-                                  "of size %dx%d", game.getRows(), size, size);
+                String message = String.format("getRows returned %d on a board " +
+                        "of size %dx%d", game.getRows(), size, size);
                 fail(message);
             } // if
         } // if
     } // testGetRows
 
-    //----------------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------------
     // TEST getCols
-    //----------------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------------
 
     /**
      * Test the {@code getCols} method.
@@ -180,15 +186,15 @@ public class ConnectFourTester {
                 System.out.println("PASS");
             } else {
                 String message = String.format("getCols returned %d on a board " +
-                                               "of size %dx%d", game.getCols(), size, size);
+                        "of size %dx%d", game.getCols(), size, size);
                 fail(message);
             } // if
         } // if
     } // testGetCols
 
-    //----------------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------------
     // TEST isInBounds
-    //----------------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------------
 
     /**
      * Test the {@code getIsInBounds} method.
@@ -217,14 +223,14 @@ public class ConnectFourTester {
         if (game != null) {
             if (game.isInBounds(-1, cols - 1)) {
                 String message = String.format("isInBounds returned true for a row " +
-                                               "input of -1 on an %dx%d board", rows, cols);
+                        "input of -1 on an %dx%d board", rows, cols);
                 fail(message);
             } else {
                 System.out.println("testIsInBounds1: PASS");
             } // if
             if (game.isInBounds(rows - 1, -1)) {
                 String message = String.format("isInBounds returned true for a col " +
-                                               "input of -1 on an %dx%d board", rows, cols);
+                        "input of -1 on an %dx%d board", rows, cols);
                 fail(message);
             } else {
                 System.out.println("testIsInBounds1: PASS");
@@ -245,14 +251,14 @@ public class ConnectFourTester {
         if (game != null) {
             if (game.isInBounds(rows - 1, cols)) {
                 String message = String.format("isInBounds returned true for a col " +
-                                               "input of %d on an %dx%d board", cols, rows, cols);
+                        "input of %d on an %dx%d board", cols, rows, cols);
                 fail(message);
             } else {
                 System.out.println("testIsInBounds2: PASS");
             } // if
             if (game.isInBounds(rows, cols - 1)) {
                 String message = String.format("isInBounds returned true for a row " +
-                                               "input of %d on an %dx%d board", rows, rows, cols);
+                        "input of %d on an %dx%d board", rows, rows, cols);
                 fail(message);
             } else {
                 System.out.println("testIsInBounds2: PASS");
@@ -260,9 +266,9 @@ public class ConnectFourTester {
         } // if
     } // testIsInBounds2
 
-    //----------------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------------
     // TEST GAMEPLAY
-    //----------------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------------
 
     /**
      * Test the overall game play on a 7x9 board. Students should write similar
@@ -324,7 +330,7 @@ public class ConnectFourTester {
                 player = (player + 1) % 2;
                 numDropped++;
             } // for
-            // Goes up by one after each row is full
+              // Goes up by one after each row is full
             lastDropRow--;
         } // for
 
@@ -355,8 +361,10 @@ public class ConnectFourTester {
     } // testGameOver
 
     /**
-     * Attempts to call methods on a new game to ensure that the proper exceptions are
-     * thrown. Specifically, tests {@code getLastDropRow}, {@code getLastDropCol}, and
+     * Attempts to call methods on a new game to ensure that the proper exceptions
+     * are
+     * thrown. Specifically, tests {@code getLastDropRow}, {@code getLastDropCol},
+     * and
      * {@code getNumDropped}.
      *
      * @param game the Connect Four game to test.
@@ -366,39 +374,42 @@ public class ConnectFourTester {
         try {
             game.getLastDropRow();
             fail("getLastDropRow should throw an IllegalStateException " +
-                 "if called on a game in the NEW phase");
+                    "if called on a game in the NEW phase");
             return false;
         } catch (IllegalStateException iae) {
             pass("getLastDropRow properly threw an IllegalStateException " +
-                 "when called on a game in the NEW phase");
+                    "when called on a game in the NEW phase");
         } // try
 
         try {
             game.getLastDropCol();
             fail("getLastDropCol should throw an IllegalStateException " +
-                 "if called on a game in the NEW phase");
+                    "if called on a game in the NEW phase");
             return false;
         } catch (IllegalStateException iae) {
             pass("getLastDropCol properly threw an IllegalStateException " +
-                 "when called on a game in the NEW phase");
+                    "when called on a game in the NEW phase");
         } // try
 
         try {
             game.getNumDropped();
             fail("getNumDropped should throw an IllegalStateException " +
-                 "if called on a game in the NEW phase");
+                    "if called on a game in the NEW phase");
             return false;
         } catch (IllegalStateException iae) {
             pass("getNumDropped properly threw an IllegalStateException " +
-                 "when called on a game in the NEW phase");
+                    "when called on a game in the NEW phase");
         } // try
         return true;
     } // testNewGame
 
     /**
-     * Attempts to call methods on a ready game to ensure that the proper exceptions are
-     * thrown. Specifically, tests {@code getLastDropRow}, {@code getLastDropCol}, and
-     * {@code getNumDropped}. The method sets the player tokens of the {@code game} to
+     * Attempts to call methods on a ready game to ensure that the proper exceptions
+     * are
+     * thrown. Specifically, tests {@code getLastDropRow}, {@code getLastDropCol},
+     * and
+     * {@code getNumDropped}. The method sets the player tokens of the {@code game}
+     * to
      * red and blue. This test fails if the provided {@code game} is not in
      * the {@link cs1302.gameutil.GamePhase#NEW} phase.
      *
@@ -415,65 +426,68 @@ public class ConnectFourTester {
             pass("GamePhase set to ready after tokens set.");
         } else {
             fail("GamePhase should be set to " +
-                 " ready after call to setPlayerTokens");
+                    " ready after call to setPlayerTokens");
             return false;
         } // if
 
         try {
             game.getLastDropRow();
             fail("getLastDropRow should throw an IllegalStateException " +
-                 "if called on a game in the READY phase");
+                    "if called on a game in the READY phase");
             return false;
         } catch (IllegalStateException iae) {
             pass("getLastDropRow properly threw an IllegalStateException " +
-                 "when called on a game in the READY phase");
+                    "when called on a game in the READY phase");
         } // try
 
         try {
             game.getLastDropCol();
             fail("getLastDropCol should throw an IllegalStateException " +
-                 "if called on a game in the READY phase");
+                    "if called on a game in the READY phase");
             return false;
         } catch (IllegalStateException iae) {
             pass("getLastDropCol properly threw an IllegalStateException " +
-                 "when called on a game in the READY phase");
+                    "when called on a game in the READY phase");
         } // try
 
         try {
             game.getNumDropped();
             fail("getNumDropped should throw an IllegalStateException " +
-                 "if called on a game in the READY phase");
+                    "if called on a game in the READY phase");
             return false;
         } catch (IllegalStateException iae) {
             pass("getNumDropped properly threw an IllegalStateException " +
-                 "when called on a game in the READY phase");
+                    "when called on a game in the READY phase");
         } // try
         return true;
     } // testReadyGame
 
     /**
-     * Drops a token in the given {@code game} in the specified {@code dropCol}. This
-     * method tests various aspects of the game after the token is dropped. Specifically,
+     * Drops a token in the given {@code game} in the specified {@code dropCol}.
+     * This
+     * method tests various aspects of the game after the token is dropped.
+     * Specifically,
      * it checks that lastDropRow, lastDropCol, and numDropped are set correctly and
      * whether or not the dropped token led to a win for the player.
      *
      * @return {@code true} if all tests pass and {@code false} otherwise.
-     * @param game a reference to the Connect Four game.
-     * @param player the player dropping the token.
+     * @param game    a reference to the Connect Four game.
+     * @param player  the player dropping the token.
      * @param dropCol the column where the token will be dropped.
      */
     private static boolean testDrop(ConnectFour game, int player, int dropCol) {
         // drop player token in the specified column.
+        
         try {
             game.dropToken(player, dropCol);
         } catch (Throwable t) {
             String message = String.format("dropToken threw an exception when " +
-                                           "a token was dropped into valid column %d\n",
-                                           dropCol);
+                    "a token was dropped into valid column %d\n",
+                    dropCol);
             fail(message, game);
             return false;
         } // try
-
+        
         // Check the game state after calling dropToken
         boolean variableCheck = checkVariables(game);
         if (!variableCheck) {
@@ -485,16 +499,17 @@ public class ConnectFourTester {
             pass("getTokenAt correctly returned the last dropped token");
         } else {
             String message = String.format("FAIL: getTokenAt incorrectly returned %s after " +
-                                           "token dropped in column %d", lastToken,
-                                           lastDropCol);
+                    "token dropped in column %d", lastToken,
+                    lastDropCol);
 
             System.out.println(message);
             return false;
         } // if
+
         if (game.isLastDropConnectFour() == isWon) {
             if (!isWon) {
                 pass("isLastDropConnectFour correctly says game is " +
-                     "not yet won.");
+                        "not yet won.");
             } else {
                 pass("isLastDropConnectFour correctly says game is won.");
             } // if
@@ -508,7 +523,8 @@ public class ConnectFourTester {
     /**
      * Checks the game state after a call to {@code dropToken}. Specifically,
      * tests {@code gamePhase}, {@code getLastDropRow}, {@code getLastDropCol},
-     * and {@code getNumDropped}. This test fails if the provided {@code game} is not in
+     * and {@code getNumDropped}. This test fails if the provided {@code game} is
+     * not in
      * the {@link cs1302.gameutil.GamePhase#PLAYABLE} phase.
      *
      * @param game the Connect Four game to test.
@@ -516,7 +532,6 @@ public class ConnectFourTester {
      */
     private static boolean checkVariables(ConnectFour game) {
         // Check game phase
-        System.out.println(game.getPhase());
         if (game.getPhase() != GamePhase.PLAYABLE) {
             fail("game phase should be PLAYABLE after a token is dropped.");
             return false;
@@ -525,35 +540,26 @@ public class ConnectFourTester {
         } // if
 
         // test drop row and drop col
-        System.out.println("numdropped: " + numDropped);
-        System.out.println("row");
-        System.out.println("test: "+lastDropRow);
-        System.out.println("game: "+game.getLastDropRow());
-        System.out.println("col");
-        System.out.println("test: " + lastDropCol);
-        System.out.println("game: " + game.getLastDropCol());
         if (lastDropRow == game.getLastDropRow()) {
             String message = String.format("last drop row correctly set to %d after " +
-                                           "token dropped in column %d", lastDropRow,
-                                           lastDropCol);
+                    "token dropped in column %d", lastDropRow,
+                    lastDropCol);
             pass(message);
         } else {
             String message = String.format("last drop row incorrectly set to %d after " +
-                                           "token dropped in column %d", game.getLastDropRow()
-                                           , lastDropCol);
+                    "token dropped in column %d", game.getLastDropRow(), lastDropCol);
             fail(message, game);
             return false;
 
         } // if
         if (lastDropCol == game.getLastDropCol()) {
             String message = String.format("last drop col correctly set to %d after " +
-                                           "token dropped in column %d", lastDropCol,
-                                           lastDropCol);
+                    "token dropped in column %d", lastDropCol,
+                    lastDropCol);
             pass(message);
         } else {
             String message = String.format("last drop col incorrectly set to %d after " +
-                                           "token dropped in column %d", game.getLastDropCol()
-                                           , lastDropCol);
+                    "token dropped in column %d", game.getLastDropCol(), lastDropCol);
             fail(message, game);
             return false;
         } // if
@@ -561,25 +567,27 @@ public class ConnectFourTester {
         // test getNumDropped
         if (numDropped == game.getNumDropped()) {
             String message = String.format("numDropped correctly set to %d after " +
-                                           "token dropped in column %d", numDropped,
-                                           lastDropCol);
+                    "token dropped in column %d", numDropped,
+                    lastDropCol);
             pass(message);
         } else {
             String message = String.format("numDropped incorrectly set to %d after " +
-                                           "token dropped in column %d", game.getNumDropped(),
-                                           lastDropCol);
+                    "token dropped in column %d", game.getNumDropped(),
+                    lastDropCol);
             fail(message, game);
             return false;
         } // if
         return true;
     } // checkVariables
 
-    //----------------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------------
     // TEST NO STATIC
-    //----------------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------------
     /**
-     * Verifies that the instance variables of the class are not static. Does this by creating
-     * two games, modifying one, and making sure the change didn't impact the second game.
+     * Verifies that the instance variables of the class are not static. Does this
+     * by creating
+     * two games, modifying one, and making sure the change didn't impact the second
+     * game.
      */
     public static void testNoStatic() {
         header("test for static");
@@ -604,11 +612,12 @@ public class ConnectFourTester {
 
     } // testNoStatic
 
-    //----------------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------------
     // TEST FULL BOARD
-    //----------------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------------
     /**
-     * Creates a new game and fills it with tokens such that no winner is present. This
+     * Creates a new game and fills it with tokens such that no winner is present.
+     * This
      * tests that the game properly ends when the board fills with no winner.
      *
      */
@@ -625,7 +634,7 @@ public class ConnectFourTester {
                 game.dropToken(player, j);
                 if (!game.isLastDropConnectFour()) {
                     pass("testFullBoard: isLastDropConnectFour correctly says game is " +
-                         "not yet won.");
+                            "not yet won.");
                 } else {
                     fail("testFullBoard: isLastDropConnectFour incorrectly says game is won", game);
                     return;
@@ -639,7 +648,7 @@ public class ConnectFourTester {
 
         if (!game.isLastDropConnectFour()) {
             pass("testFullBoard: isLastDropConnectFour correctly says game is " +
-                 "not yet won.");
+                    "not yet won.");
         } else {
             fail("testFullBoard: isLastDropConnectFour incorrectly says game is won", game);
             return;
@@ -651,13 +660,15 @@ public class ConnectFourTester {
     } // testFullBoard
 
     /**
-     * Returns a new {@code ConnectFour} object if {@code rows} and {@code cols} are valid.
+     * Returns a new {@code ConnectFour} object if {@code rows} and {@code cols} are
+     * valid.
      * Otherwise, the method returns {@code null}.
      *
      * @param rows the number of rows in the new game.
      * @param cols the number of columns in the new game.
-     * @return a new {@code ConnectFour} object if {@code rows} and {@code cols} are valid
-     * and {@code null} otherwise.
+     * @return a new {@code ConnectFour} object if {@code rows} and {@code cols} are
+     *         valid
+     *         and {@code null} otherwise.
      */
     private static ConnectFour newValidGame(int rows, int cols) {
         ConnectFour game = null;
@@ -699,7 +710,7 @@ public class ConnectFourTester {
      * to print the game grid.
      *
      * @param message the message to print.
-     * @param game a {@code ConnectFour} game object.
+     * @param game    a {@code ConnectFour} game object.
      */
     private static void fail(String message, ConnectFour game) {
         System.out.println("FAIL");

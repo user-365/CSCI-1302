@@ -2,6 +2,8 @@ package cs1302.game;
 
 import java.util.Arrays;
 import java.util.function.IntConsumer;
+import java.util.regex.Pattern;
+
 import cs1302.gameutil.GamePhase;
 import cs1302.gameutil.Token;
 import cs1302.gameutil.TokenGrid;
@@ -346,7 +348,6 @@ public class ConnectFour {
         // North
         n = r >= 3;
         
-        System.out.println("south!!!!: " + q(lastToken, grid[r][c + 3], grid[r][c + 1], grid[r][c + 2]));
         // used to be a nested-if tree,
         // pardon the heavy-duty short-circuiting.
         return false // default: not a connect-four
@@ -407,6 +408,17 @@ public class ConnectFour {
     static boolean q (Token...z) {
         return z[0] == z[1]
                 && (z.length < 3 ? true : q(Arrays.copyOfRange(z, 1, z.length)));
+    }
+
+    static boolean directionCheck (char[]c) {
+        if (String.valueOf(c).matches("[^EW][^NS]|...+")) {
+            throw new IllegalArgumentException(
+                "Illegal Argument: Please enter one of eight compass directions."
+            );
+        }
+        boolean b = false;
+        if (s.matches
+        return b;
     }
 
     //----------------------------------------------------------------------------------------------
