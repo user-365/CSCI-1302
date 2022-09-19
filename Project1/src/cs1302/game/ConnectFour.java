@@ -269,8 +269,7 @@ public class ConnectFour {
             grid[this.lastDropRow - 1][c] = this.getPlayerToken(player);
         } 
         // estimate where last token is, then find next empty (null) cell
-        // estimate of avg unfilled 0-row
-        int startRow = r - (int) Math.round(numDropped / this.cols);
+        int startRow = r - (int) Math.round(numDropped / this.cols); // estim. avg unfilled row
         /**
          * H is short for "Helper". Single-purpose class to house a method which
          * will save a few lines of code. Did this as proof of concept.
@@ -280,6 +279,7 @@ public class ConnectFour {
         class H <I> {
             I f;
         } // H
+        
         H<IntConsumer> h = new H<>();
         h.f = j -> {
             for (int i = startRow; 0 <= i && i <= r; i += j) {
