@@ -248,23 +248,17 @@ public class ConnectFour {
      * @throws IllegalStateException if the specified column in the grid is full
      */
     public void dropToken(int player, int col) {
-        
-        // check out-of-bounds
-        if (!isInBounds(0, col)) {
+        if (!isInBounds(0, col)) { // check out-of-bounds
             throw new IndexOutOfBoundsException(
                 "Out of bounds: Please enter a valid column index.");
         }
-        // check player = 0 or 1
-        this.getPlayerToken(player); // does this work??? lol
-        // check phase (^GamePhase.NEW checked with getPlayerToken)
-        if (this.phase == GamePhase.OVER) {
+        this.getPlayerToken(player); // check player = 0 or 1
+        if (this.phase == GamePhase.OVER) { // check phase (^NEW checked w/ getPlayerToken)
             throw new IllegalStateException(
                 "Wrong phase: Game isn't ready or isn't being played.");
         }
-        // start the game!
-        this.phase = GamePhase.PLAYABLE;
-        // 0-indexing
-        int c = col, r = this.rows - 1;
+        this.phase = GamePhase.PLAYABLE; // start the game!
+        int c = col, r = this.rows - 1; // 0-indexing
         // shortcut: if same column as last token
         if (c == this.lastDropCol) {
             // check full column
@@ -277,14 +271,15 @@ public class ConnectFour {
         // estimate where last token is, then find next empty (null) cell
         // estimate of avg unfilled 0-row
         int startRow = r - (int) Math.round(numDropped / this.cols);
-        
         /**
          * H is short for "Helper". Single-purpose class to house a method which
          * will save a few lines of code. Did this as proof of concept.
          * 
          * @param <I> - Functional Interface Type
          */
-        class H <I> { I f; }
+        class H <I> {
+            I f;
+        } // H
         H<IntConsumer> h = new H<>();
         h.f = j -> {
             for (int i = startRow; 0 <= i && i <= r; i += j) {
@@ -301,10 +296,8 @@ public class ConnectFour {
         } else { // if filled, go up
             h.f.accept(-1);
         } // if-else
-        // one more token dropped!
-        this.numDropped++;
-        // check win (after fourth move)
-        if (numDropped > 3
+        this.numDropped++; // one more token dropped!
+        if (numDropped > 3 // check win (after fourth move)
             && isLastDropConnectFour()
             || numDropped > this.rows * this.cols) {
             this.phase = GamePhase.OVER;
@@ -352,13 +345,15 @@ public class ConnectFour {
                     // southeast
                     || s && q(lastToken, grid[r + 3][c + 3], grid[r + 1][c + 1], grid[r + 2][c + 2])
                     // northeast
-                    || n && q(lastToken, grid[r - 3][c + 3], grid[r - 1][c + 1], grid[r - 2][c + 2]))
+                    || n && q(lastToken, grid[r - 3][c + 3], grid[r - 1][c + 1], grid[r - 2][c + 2])
+                        )
                 // -west
                 || w && (q(lastToken, grid[r][c - 3], grid[r][c - 1], grid[r][c - 2])
                     // southwest
                     || s && q(lastToken, grid[r + 3][c - 3], grid[r + 1][c - 1], grid[r + 2][c - 2])
                     // northwest
-                    || n && q(lastToken, grid[r - 3][c - 3], grid[r - 1][c - 1], grid[r - 2][c - 2]))
+                    || n && q(lastToken, grid[r - 3][c - 3], grid[r - 1][c - 1], grid[r - 2][c - 2])
+                        )
                 // south only
                 || s && q(lastToken, grid[r + 3][c], grid[r + 1][c], grid[r + 2][c]);
         // return
