@@ -2,6 +2,7 @@ package cs1302.game;
 
 import java.util.Arrays;
 import java.util.function.IntConsumer;
+import java.util.stream.IntStream;
 
 import cs1302.gameutil.GamePhase;
 import cs1302.gameutil.Token;
@@ -60,7 +61,7 @@ public class ConnectFour {
         }
         this.rows = rows;
         this.cols = cols;
-        this.grid = new Token[rows-1][cols-1];
+        this.grid = new Token[rows][cols];
         this.player = new Token[2];
         this.numDropped = 0;
         this.lastDropRow = -1;
@@ -261,24 +262,27 @@ public class ConnectFour {
             throw new IllegalStateException(
                 "Wrong phase: Game isn't ready or isn't being played.");
         }
+        System.err.println("Checks done");
 
         // 0-indexing
         int c = col, r = this.rows - 1;
 
         // shortcut: if same column as last token
         if (c == this.lastDropCol) {
+            System.err.println("same column!");
             // check full column
-            if (this.lastDropRow == 0) {
+            if (this.lastDropRow <= 0) {
+                System.err.println("column filled");
                 throw new IllegalStateException(
                     "Illegal Argument: Sorry, column full!");
             }
             grid[this.lastDropRow-1][c] = this.getPlayerToken(player);
+            System.err.println("same column success!");
         }
         
         // estimate where last token is, then find next empty (null) cell
         int startRow = r - (int) Math.round(numDropped / this.cols); // estimate of avg unfilled 0-row
-        if (!isInBounds(startRow, col)) throw new ArithmeticException("SUDFKDFDFDF");
-
+        
         /**
          * H is short for "Helper". Single-purpose class to house a method which
          * will save a few lines of code. Did this as proof of concept.
@@ -286,7 +290,7 @@ public class ConnectFour {
          * @param <I> - Functional Interface Type
          */
         class H <I> { I f; }
-        H<IntConsumer> a = new H<>(); // don't worry
+        H<IntConsumer> a = new H<>();
         a.f = j -> {
             for (int i = startRow; 0 <= i || i <= r; i += j) {
                 if (grid[i][c] == null) {
@@ -296,18 +300,14 @@ public class ConnectFour {
                     break;
                 } // if
             } // for
-        };
-        try {
-            System.out.println("fdsfsdfsd");
-            System.err.println("fdsfsd");
-            if (grid[startRow][c] == null) { // if null, then go down
-                a.f.accept(1);
-            } else { // if filled, go up
-                a.f.accept(-1);
-            } // if-else
-        } catch (Exception e) {
-            System.err.println("YESIFDUSIFUDSOFDSJOFS");
-        }
+        }; // a.f
+        if (grid[startRow][c] == null) { // if null, then go down
+            System.err.println("cell null, going down");
+            a.f.accept(1);
+        } else { // if filled, go up
+            System.err.println("cell filled, going up");
+            a.f.accept(-1);
+        } // if-else
         
 
         // start the game!

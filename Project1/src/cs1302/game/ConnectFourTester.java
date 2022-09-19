@@ -464,7 +464,6 @@ public class ConnectFourTester {
      */
     private static boolean testDrop(ConnectFour game, int player, int dropCol) {
         // drop player token in the specified column.
-        game.dropToken(player, dropCol);
         try {
             game.dropToken(player, dropCol);
         } catch (Throwable t) {
