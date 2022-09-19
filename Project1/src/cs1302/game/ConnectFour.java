@@ -55,9 +55,9 @@ public class ConnectFour {
     public ConnectFour(int rows, int cols)  {
         if (6 > rows || rows > 9
             || 7 > cols || cols > 9) {  // De Morgan's Laws
-                throw new IllegalArgumentException(
-                    "Unsupported Values: please make sure that 6 ≤ rows ≤ 9 and 7 ≤ cols ≤ 9."
-                );
+            throw new IllegalArgumentException(
+                "Unsupported Values: please make sure that 6 ≤ rows ≤ 9 and 7 ≤ cols ≤ 9."
+            );
         }
         this.rows = rows;
         this.cols = cols;
@@ -144,8 +144,8 @@ public class ConnectFour {
     public void setPlayerTokens(Token token0, Token token1) {
         if (token0 == null
             || token1 == null) {
-                throw new NullPointerException(
-                    "Null argument(s): Neither argument can be null.");
+            throw new NullPointerException(
+                "Null argument(s): Neither argument can be null.");
         }
         if (isPlayed(this)) {
             throw new IllegalStateException(
@@ -263,13 +263,10 @@ public class ConnectFour {
             throw new IllegalStateException(
                 "Wrong phase: Game isn't ready or isn't being played.");
         }
-
         // start the game!
         this.phase = GamePhase.PLAYABLE;
-
         // 0-indexing
         int c = col, r = this.rows - 1;
-
         // shortcut: if same column as last token
         if (c == this.lastDropCol) {
             // check full column
@@ -277,11 +274,11 @@ public class ConnectFour {
                 throw new IllegalStateException(
                     "Illegal Argument: Sorry, column full!");
             }
-            grid[this.lastDropRow-1][c] = this.getPlayerToken(player);
-        }
-        
+            grid[this.lastDropRow - 1][c] = this.getPlayerToken(player);
+        } 
         // estimate where last token is, then find next empty (null) cell
-        int startRow = r - (int) Math.round(numDropped / this.cols); // estimate of avg unfilled 0-row
+        // estimate of avg unfilled 0-row
+        int startRow = r - (int) Math.round(numDropped / this.cols);
         
         /**
          * H is short for "Helper". Single-purpose class to house a method which
@@ -306,13 +303,14 @@ public class ConnectFour {
         } else { // if filled, go up
             h.f.accept(-1);
         } // if-else
-        
         // one more token dropped!
         this.numDropped++;
         // check win (after fourth move)
         if (numDropped > 3
             && isLastDropConnectFour()
-            || numDropped > this.rows * this.cols) { this.phase = GamePhase.OVER; }
+            || numDropped > this.rows * this.cols) {
+            this.phase = GamePhase.OVER;
+        }
     } // dropToken
 
     /**
@@ -352,19 +350,19 @@ public class ConnectFour {
         // pardon the heavy-duty short-circuiting.
         return false // default: not a connect-four
                 // -east
-                || e && (q(lastToken, grid[r][c+3], grid[r][c+1], grid[r][c+2])
+                || e && (q(lastToken, grid[r][c + 3], grid[r][c + 1], grid[r][c + 2])
                     // southeast
-                    || s && q(lastToken, grid[r+3][c+3], grid[r+1][c+1], grid[r+2][c+2])
+                    || s && q(lastToken, grid[r + 3][c + 3], grid[r + 1][c + 1], grid[r + 2][c + 2])
                     // northeast
-                    || n && q(lastToken, grid[r-3][c+3], grid[r-1][c+1], grid[r-2][c+2]))
+                    || n && q(lastToken, grid[r - 3][c + 3], grid[r - 1][c + 1], grid[r - 2][c + 2]))
                 // -west
-                || w && (q(lastToken, grid[r][c-3], grid[r][c-1], grid[r][c-2])
+                || w && (q(lastToken, grid[r][c - 3], grid[r][c - 1], grid[r][c - 2])
                     // southwest
-                    || s && q(lastToken, grid[r+3][c-3], grid[r+1][c-1], grid[r+2][c-2])
+                    || s && q(lastToken, grid[r + 3][c - 3], grid[r + 1][c - 1], grid[r + 2][c - 2])
                     // northwest
-                    || n && q(lastToken, grid[r-3][c-3], grid[r-1][c-1], grid[r-2][c-2]))
+                    || n && q(lastToken, grid[r - 3][c - 3], grid[r - 1][c - 1], grid[r - 2][c - 2]))
                 // south only
-                || s && q(lastToken, grid[r+3][c], grid[r+1][c], grid[r+2][c]);
+                || s && q(lastToken, grid[r + 3][c], grid[r + 1][c], grid[r + 2][c]);
         // return
         // secret regex mode?????
     } // isLastDropConnectFour
@@ -377,6 +375,7 @@ public class ConnectFour {
     /**
      * PLAYABLE or OVER: Returns a boolean based on the current phase of the game.
      * 
+     * @param c an object of type {@code ConnectFour} representing a game.
      * @return {@code true} if {@link #getPhase getPhase()} returns
      *         {@link cs1302.gameutil.GamePhase#PLAYABLE} or
      *         {@link cs1302.gameutil.GamePhase#OVER} and {@code false} otherwise
@@ -410,6 +409,9 @@ public class ConnectFour {
                 && (z.length < 3 ? true : q(Arrays.copyOfRange(z, 1, z.length)));
     }
 
+    /**
+     * 
+     */
     static boolean directionCheck (char[]c) {
         if (String.valueOf(c).matches("[^EW][^NS]|...+")) {
             throw new IllegalArgumentException(
