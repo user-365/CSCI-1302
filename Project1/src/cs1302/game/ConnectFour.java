@@ -417,7 +417,7 @@ public class ConnectFour {
             );
         }
         boolean b = false;
-        if (s.matches
+        //
         return b;
     }
 
