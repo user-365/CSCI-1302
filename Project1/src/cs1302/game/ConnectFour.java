@@ -410,9 +410,21 @@ public class ConnectFour {
     }
 
     /**
+     * Direction Check: Checks for a <em>connect four</em> on either a
+     * vertical, horizontal, or diagonal direction, each being represented by
+     * one of four cardinal compass directions (N, S, E, W) and the four
+     * inter-cardinal directions (NE, NW, SE, SW).
      * 
+     * @param c a {@code char[]} of either length one or two, which is intended
+     *          to contain the abbreviation of a/an (inter)cardinal direction in
+     *          any order, capitalized
+     * @return {@code true} if there is at least one <em>connect four</em>, and
+     *         {@code false} otherwise
+     * @throws java.lang.IllegalArgumentException if the argument does not
+     * concatenate and permute to a/an (inter)cardinal direction, or if its
+     * length is greater than 2
      */
-    static boolean directionCheck (char[]c) {
+    static boolean directionCheck (char...c) {
         if (String.valueOf(c).matches("[^EW][^NS]|...+")) {
             throw new IllegalArgumentException(
                 "Illegal Argument: Please enter one of eight compass directions."
