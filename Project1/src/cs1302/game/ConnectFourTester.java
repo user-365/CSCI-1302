@@ -491,11 +491,6 @@ public class ConnectFourTester {
             System.out.println(message);
             return false;
         } // if
-        System.err.println("numdropped: "+game.getNumDropped());
-        System.err.println("method: "+ game.isLastDropConnectFour());
-        System.err.println("iswon: "+ isWon);
-        System.err.println("all blue: "+ConnectFour.q(Token.BLUE, Token.BLUE, Token.BLUE, Token.BLUE));
-        System.err.println("3 blue one red: "+ConnectFour.q(Token.BLUE, Token.BLUE, Token.BLUE, Token.RED));
         if (game.isLastDropConnectFour() == isWon) {
             if (!isWon) {
                 pass("isLastDropConnectFour correctly says game is " +
@@ -521,6 +516,7 @@ public class ConnectFourTester {
      */
     private static boolean checkVariables(ConnectFour game) {
         // Check game phase
+        System.out.println(game.getPhase());
         if (game.getPhase() != GamePhase.PLAYABLE) {
             fail("game phase should be PLAYABLE after a token is dropped.");
             return false;
@@ -529,6 +525,13 @@ public class ConnectFourTester {
         } // if
 
         // test drop row and drop col
+        System.out.println("numdropped: " + numDropped);
+        System.out.println("row");
+        System.out.println("test: "+lastDropRow);
+        System.out.println("game: "+game.getLastDropRow());
+        System.out.println("col");
+        System.out.println("test: " + lastDropCol);
+        System.out.println("game: " + game.getLastDropCol());
         if (lastDropRow == game.getLastDropRow()) {
             String message = String.format("last drop row correctly set to %d after " +
                                            "token dropped in column %d", lastDropRow,

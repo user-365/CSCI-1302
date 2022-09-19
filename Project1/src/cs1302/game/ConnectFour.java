@@ -2,8 +2,6 @@ package cs1302.game;
 
 import java.util.Arrays;
 import java.util.function.IntConsumer;
-import java.util.stream.IntStream;
-
 import cs1302.gameutil.GamePhase;
 import cs1302.gameutil.Token;
 import cs1302.gameutil.TokenGrid;
@@ -250,6 +248,7 @@ public class ConnectFour {
      * @throws IllegalStateException if the specified column in the grid is full
      */
     public void dropToken(int player, int col) {
+        
         // check out-of-bounds
         if (!isInBounds(0, col)) {
             throw new IndexOutOfBoundsException(
@@ -262,6 +261,9 @@ public class ConnectFour {
             throw new IllegalStateException(
                 "Wrong phase: Game isn't ready or isn't being played.");
         }
+
+        // start the game!
+        this.phase = GamePhase.PLAYABLE;
 
         // 0-indexing
         int c = col, r = this.rows - 1;
@@ -286,10 +288,10 @@ public class ConnectFour {
          * @param <I> - Functional Interface Type
          */
         class H <I> { I f; }
-        H<IntConsumer> a = new H<>();
-        a.f = j -> {
+        H<IntConsumer> h = new H<>();
+        h.f = j -> {
             for (int i = startRow; 0 <= i && i <= r; i += j) {
-                if (grid[i][c] == null) {
+                if (isInBounds(i,c) && grid[i][c] == null) {
                     grid[i][c] = ConnectFour.this.getPlayerToken(player);
                     ConnectFour.this.lastDropCol = c;
                     ConnectFour.this.lastDropRow = i;
@@ -298,17 +300,15 @@ public class ConnectFour {
             } // for
         }; // a.f
         if (grid[startRow][c] == null) { // if null, then go down
-            a.f.accept(1);
+            h.f.accept(1);
         } else { // if filled, go up
-            a.f.accept(-1);
+            h.f.accept(-1);
         } // if-else
         
-        // start the game!
-        this.phase = GamePhase.PLAYABLE;
         // one more token dropped!
         this.numDropped++;
         // check win (after fourth move)
-        if (numDropped > 3 
+        if (numDropped > 3
             && isLastDropConnectFour()
             || numDropped > this.rows * this.cols) { this.phase = GamePhase.OVER; }
     } // dropToken
@@ -339,17 +339,14 @@ public class ConnectFour {
         // Proximity to bounds
         // East
         e = this.cols - c > 3;
-        System.out.println("east: "+e);
         // West
         w = c >= 3;
-        System.out.println("west: " + w);
         // South
         s = this.rows - r > 3;
-        System.out.println("south: " + s);
         // North
         n = r >= 3;
-        System.out.println("north: " + n);
         
+        System.out.println("south!!!!: " + q(lastToken, grid[r][c + 3], grid[r][c + 1], grid[r][c + 2]));
         // used to be a nested-if tree,
         // pardon the heavy-duty short-circuiting.
         return false // default: not a connect-four
@@ -367,7 +364,7 @@ public class ConnectFour {
                     || n && q(lastToken, grid[r-3][c-3], grid[r-1][c-1], grid[r-2][c-2]))
                 // south only
                 || s && q(lastToken, grid[r+3][c], grid[r+1][c], grid[r+2][c]);
-
+        // return
         // secret regex mode?????
     } // isLastDropConnectFour
 
@@ -377,7 +374,7 @@ public class ConnectFour {
     //----------------------------------------------------------------------------------------------
 
     /**
-     * Returns a boolean based on the current phase of the game.
+     * PLAYABLE or OVER: Returns a boolean based on the current phase of the game.
      * 
      * @return {@code true} if {@link #getPhase getPhase()} returns
      *         {@link cs1302.gameutil.GamePhase#PLAYABLE} or
@@ -408,7 +405,6 @@ public class ConnectFour {
      * @return {@code true} if they are ALL equal, {@code false} otherwise
      */
     static boolean q (Token...z) {
-        //Token[] w = Arrays.copyOfRange(z, 1, z.length);
         return z[0] == z[1]
                 && (z.length < 3 ? true : q(Arrays.copyOfRange(z, 1, z.length)));
     }
