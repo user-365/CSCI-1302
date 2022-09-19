@@ -491,7 +491,10 @@ public class ConnectFourTester {
             System.out.println(message);
             return false;
         } // if
-
+        System.err.println(game.getNumDropped());
+        System.err.println("method: "+ game.isLastDropConnectFour());
+        System.err.println();
+        System.err.println("iswon: "+ isWon);
         if (game.isLastDropConnectFour() == isWon) {
             if (!isWon) {
                 pass("isLastDropConnectFour correctly says game is " +

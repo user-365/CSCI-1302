@@ -262,22 +262,18 @@ public class ConnectFour {
             throw new IllegalStateException(
                 "Wrong phase: Game isn't ready or isn't being played.");
         }
-        System.err.println("Checks done");
 
         // 0-indexing
         int c = col, r = this.rows - 1;
 
         // shortcut: if same column as last token
         if (c == this.lastDropCol) {
-            System.err.println("same column!");
             // check full column
             if (this.lastDropRow <= 0) {
-                System.err.println("column filled");
                 throw new IllegalStateException(
                     "Illegal Argument: Sorry, column full!");
             }
             grid[this.lastDropRow-1][c] = this.getPlayerToken(player);
-            System.err.println("same column success!");
         }
         
         // estimate where last token is, then find next empty (null) cell
@@ -292,7 +288,7 @@ public class ConnectFour {
         class H <I> { I f; }
         H<IntConsumer> a = new H<>();
         a.f = j -> {
-            for (int i = startRow; 0 <= i || i <= r; i += j) {
+            for (int i = startRow; 0 <= i && i <= r; i += j) {
                 if (grid[i][c] == null) {
                     grid[i][c] = ConnectFour.this.getPlayerToken(player);
                     ConnectFour.this.lastDropCol = c;
@@ -302,14 +298,11 @@ public class ConnectFour {
             } // for
         }; // a.f
         if (grid[startRow][c] == null) { // if null, then go down
-            System.err.println("cell null, going down");
             a.f.accept(1);
         } else { // if filled, go up
-            System.err.println("cell filled, going up");
             a.f.accept(-1);
         } // if-else
         
-
         // start the game!
         this.phase = GamePhase.PLAYABLE;
         // one more token dropped!
@@ -318,7 +311,6 @@ public class ConnectFour {
         if (numDropped > 3 
             && isLastDropConnectFour()
             || numDropped > this.rows * this.cols) { this.phase = GamePhase.OVER; }
-        
     } // dropToken
 
     /**
@@ -347,18 +339,24 @@ public class ConnectFour {
         // Proximity to bounds
         // East
         e = this.cols - c > 3;
+        System.out.println("east: "+e);
         // West
         w = c >= 3;
+        System.out.println("west: " + w);
         // South
         s = this.rows - r > 3;
+        System.out.println("sast: " + s);
         // North
         n = r >= 3;
+        System.out.println("nest: " + n);
         
+        boolean b = false;
+
         // if east
         if (e) {
             // if southeast
             if (s) {
-                return q(lastToken, grid[r+3][c+3], grid[r+3][c+1], grid[r+3][c+2]);
+                b |= q(lastToken, grid[r+3][c+3], grid[r+3][c+1], grid[r+3][c+2]);
             } // if
             // if northeast
             if (n) {
@@ -382,7 +380,7 @@ public class ConnectFour {
         if (s) {
             return q(lastToken, grid[r+3][c], grid[r+1][c], grid[r+2][c]);
         }
-        return 0 < 0;
+        return b;
 
         // secret regex mode?????
     } // isLastDropConnectFour
@@ -412,7 +410,7 @@ public class ConnectFour {
      * @param y   another enum of type {@code Token}
      * @return {@code true} if they are ALL equal, {@code false} otherwise
      */
-    static boolean q (Token x, Token y) { return x == y; }
+    //static boolean q (Token x, Token y) { return x == y; }
 
     /**
      * Checks whether all the elements of an array of {@code Token} enums are equal.
@@ -424,8 +422,7 @@ public class ConnectFour {
      */
     static boolean q (Token...z) {
         Token[] w = Arrays.copyOfRange(z, 1, z.length - 1);
-        boolean b = q(z[0],z[1]);
-        return b && q(w);
+        return z[0] == z[1] && z.length < 3 ? true : q(w);
     }
 
     //----------------------------------------------------------------------------------------------
