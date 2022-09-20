@@ -293,11 +293,8 @@ public class ConnectFour {
             h.f.accept(-1); // go up
         } // if-else
         this.numDropped++; // one more token dropped!
-        if (numDropped > 3 // check win (after fourth move)
-            && isLastDropConnectFour()
-            || numDropped > this.rows * this.cols) { // OR board filled
-            this.phase = GamePhase.OVER;
-        } // if
+        if (numDropped > 3 // short-circuit if less than 4 tokens on the grid
+            && isLastDropConnectFour()); // this method is also boolean so yeah! ;P
     } // dropToken
 
     /**
@@ -306,14 +303,13 @@ public class ConnectFour {
      * have the same color) -- this sequence can occur horizontally, vertically, or diagonally.
      * If the grid is full or the last drop created a <em>connect four</em>, then this method
      * changes the game's phase to {@link cs1302.gameutil.GamePhase#OVER}.
+     * A bit of a misnomer because it also checks if the grid is full.
      *
      * <p>
-     * <strong>NOTE:</strong> The only instance variable that this method might change, if
-     * applicable, is ``phase``.
+     * <strong>NOTE:</strong> The only instance variable that this method can change is ``phase``.
      *
      * <p>
-     * <strong>NOTE:</strong> If you want to use this method to determine a winner, then you must
-     * call it after each call to {@link #dropToken}.
+     * <strong>NOTE:</strong> Called after each* call to {@link #dropToken}.
      *
      * @return {@code true} if the last token dropped created a <em>connect four</em>, else
      *     {@code false}
@@ -331,7 +327,10 @@ public class ConnectFour {
         // North
         boolean n = r >= 3;
         
-        return check(lastToken, {r, c}, w, n, e, s);
+        if (check(lastToken, {r, c}, w, n, e, s) // connect-four
+            || numDropped > this.rows * this.cols) { // or if grid full
+            this.phase = GamePhase.OVER; // end game
+        } // if
             
         /* deprecated; replaced by check()
         return  false // default: not a connect-four
