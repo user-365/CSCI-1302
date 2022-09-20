@@ -1,6 +1,6 @@
 package cs1302.game;
 
-import java.util.*; // List, Arrays, function.IntConsumer
+import java.util.*; // Arrays and function.IntConsumer
 import cs1302.gameutil.GamePhase;
 import cs1302.gameutil.Token;
 import cs1302.gameutil.TokenGrid;
@@ -53,9 +53,8 @@ public class ConnectFour {
         if (6 > rows || rows > 9
             || 7 > cols || cols > 9) {  // De Morgan's Laws
             throw new IllegalArgumentException(
-                "Unsupported Values: please make sure that 6 ≤ rows ≤ 9 and 7 ≤ cols ≤ 9."
-            );
-        }
+                "Unsupported Values: please make sure that 6 ≤ rows ≤ 9 and 7 ≤ cols ≤ 9.");
+        } // if
         this.rows = rows;
         this.cols = cols;
         this.grid = new Token[rows][cols];
@@ -64,7 +63,6 @@ public class ConnectFour {
         this.lastDropRow = -1;
         this.lastDropCol = -1;
         this.phase = GamePhase.NEW;
-        //throw new UnsupportedOperationException("constructor: not yet implemented.");
     } // ConnectFour
 
     //----------------------------------------------------------------------------------------------
@@ -121,8 +119,8 @@ public class ConnectFour {
             throw new IndexOutOfBoundsException(
                 "Out of bounds: Please make sure that 1 ≤ row ≤ %d and 1 ≤ col ≤ %d."
                 .formatted(rows, cols));
-        } 
-        return this.grid[row][col] != null ? this.grid[row][col] : null;
+        } // if
+        return this.grid[row][col]; // != null ? this.grid[row][col] : null;???
     } // getTokenAt
 
     /**
@@ -143,15 +141,15 @@ public class ConnectFour {
             || token1 == null) {
             throw new NullPointerException(
                 "Null argument(s): Neither argument can be null.");
-        }
+        } // if
         if (isPlayed(this)) {
             throw new IllegalStateException(
                 "Wrong phase: Tokens can only be assigned upon creation of a new game.");
-        }
+        } // if
         if (token0 == token1) {
             throw new IllegalArgumentException(
                 "Bad arguments: Both players can't be assigned the same token.");
-        }
+        } // if
         this.player[0] = token0;
         this.player[1] = token1;
         this.phase = GamePhase.READY;
@@ -170,11 +168,11 @@ public class ConnectFour {
         if (player != 0 && player != 1) {
             throw new IllegalArgumentException(
                 "Bad Argument: Argument must either be 0 or 1.");
-        }
+        } // if
         if (this.phase == GamePhase.NEW) {
             throw new IllegalStateException(
                 "Wrong phase: You can only get tokens after they have been assigned.");
-        }
+        } // if
         return this.player[player];
     } // getPlayerToken
 
@@ -189,7 +187,7 @@ public class ConnectFour {
         if (!isPlayed(this)) {
             throw new IllegalStateException(
                 "Wrong phase: The game just started; no tokens are on the board yet.");
-        }
+        } // if
         return this.numDropped;
     } // getNumDropped
 
@@ -205,7 +203,7 @@ public class ConnectFour {
         if (!isPlayed(this)) {
             throw new IllegalStateException(
                 "Wrong phase: The game just started; no tokens are on the board yet.");
-        }
+        } // if
         return this.lastDropRow;
     } // getLastDropRow
 
@@ -250,23 +248,22 @@ public class ConnectFour {
         if (!isInBounds(0, col)) { // check out-of-bounds
             throw new IndexOutOfBoundsException(
                 "Out of bounds: Please enter a valid column index.");
-        }
-        this.getPlayerToken(player); // check player = 0 or 1
+        } // if
+        this.getPlayerToken(player); // check player = 0 or 1, intentionally unassigned
         if (this.phase == GamePhase.OVER) { // check phase (^NEW checked w/ getPlayerToken)
             throw new IllegalStateException(
                 "Wrong phase: Game isn't ready or isn't being played.");
-        }
+        } // if
         this.phase = GamePhase.PLAYABLE; // start the game!
         int c = col, r = this.rows - 1; // 0-indexing
-        // shortcut: if same column as last token
+        // shortcut: if same column as last token...
         if (c == this.lastDropCol) {
-            // check full column
-            if (this.lastDropRow <= 0) {
+            if (this.lastDropRow <= 0) { // check full column
                 throw new IllegalStateException(
                     "Illegal Argument: Sorry, column full!");
-            }
-            grid[this.lastDropRow - 1][c] = this.getPlayerToken(player);
-        } 
+            } // if
+            grid[this.lastDropRow - 1][c] = this.getPlayerToken(player); // go up one row
+        } // if
         // estimate where last token is, then find next empty (null) cell
         int startRow = r - (int) Math.round(numDropped / this.cols); // estim. avg unfilled row
         /**
@@ -279,29 +276,28 @@ public class ConnectFour {
             I f;
         } // H
         
-        H<IntConsumer> h = new H<>();
-        
+        H<IntConsumer> h = new H<>(); // int -> void
         h.f = j -> {
             for (int i = startRow; 0 <= i && i <= r; i += j) {
                 if (isInBounds(i,c) && grid[i][c] == null) {
                     grid[i][c] = ConnectFour.this.getPlayerToken(player);
-                    ConnectFour.this.lastDropCol = c;
-                    ConnectFour.this.lastDropRow = i;
-                    break;
+                    ConnectFour.this.lastDropCol = c; // store last col
+                    ConnectFour.this.lastDropRow = i; // store last row
+                    break; // leave asap
                 } // if
             } // for
-        }; // a.f
-        if (grid[startRow][c] == null) { // if null, then go down
-            h.f.accept(1);
-        } else { // if filled, go up
-            h.f.accept(-1);
+        }; // h.f
+        if (grid[startRow][c] == null) { // if null...
+            h.f.accept(1); // then go down
+        } else { // if filled...
+            h.f.accept(-1); // go up
         } // if-else
         this.numDropped++; // one more token dropped!
         if (numDropped > 3 // check win (after fourth move)
             && isLastDropConnectFour()
-            || numDropped > this.rows * this.cols) {
+            || numDropped > this.rows * this.cols) { // OR board filled
             this.phase = GamePhase.OVER;
-        }
+        } // if
     } // dropToken
 
     /**
@@ -323,26 +319,22 @@ public class ConnectFour {
      *     {@code false}
      */
     public boolean isLastDropConnectFour() {
-        int c = this.lastDropCol, r = this.lastDropRow;
+        int c = this.lastDropCol, r = this.lastDropRow; // golfing var names
         Token lastToken = getTokenAt(r, c); // last token played
-        boolean e, w, s, n;
-
         // Proximity to bounds
         // East
-        e = this.cols - c > 3;
+        boolean e = this.cols - c > 3;
         // West
-        w = c >= 3;
+        boolean w = c >= 3;
         // South
-        s = this.rows - r > 3;
+        boolean s = this.rows - r > 3;
         // North
-        n = r >= 3;
+        boolean n = r >= 3;
         
-        // used to be a nested-if tree,
-        // pardon the heavy-duty short-circuiting.
         return check(lastToken, {r, c}, w, n, e, s);
             
         /* deprecated; replaced by check()
-                false // default: not a connect-four
+        return  false // default: not a connect-four
                 // -east
                 || e && (q(lastToken, grid[r][c + 3], grid[r][c + 1], grid[r][c + 2])
                     // southeast
@@ -381,7 +373,8 @@ public class ConnectFour {
 
     /**
      * Token Equality: Checks whether all the elements of an array of {@code Token} enums are
-     * equal, recursively.
+     * equal, recursively. Assumes the transitivity of equality. Compares each {@code Token}
+     * with the next one, shifting after each comparison.
      * Inspired by <a href="https://stackoverflow.com/a/8198279">this answer
      * on Stack Exchange</a>.
      * 
@@ -417,17 +410,16 @@ public class ConnectFour {
      * @throws java.lang.IllegalArgumentException if the argument is not in [0,7]
      */
     static boolean check (Token t, int[] n, boolean...b) {
-        if (b.length != 4 || n.length != 2) {
+        if (b.length != 4 || n.length != 2) { // check array dims
             throw new IllegalArgumentException(
-                "Illegal Argument: Please check array arguments, then try again."
-            );
-        }
+                "Illegal Argument: Please check array arguments, then try again.");
+        } // if
         // i chose this over ArrayList?...
         boolean[]a = new Array[5];
         System.arraycopy(b, 0, a, 0, 3);
         a[3] = a[4] = true;
         a[5] = b[3];
-        // [W, N, E, true, true, S]
+        // [W, N, E, true, true, S]; super ugly!!!
         
         boolean o = false; // default: "no connect-fours"
         /*
@@ -435,6 +427,7 @@ public class ConnectFour {
         SE: (1,1);  SW: (1,-1);
         E: (0,1);   W: (0,-1);
         NE: (-1,1); NW: (-1,-1)
+        (Ordered decreasing in probability, supposedly)
         */
         for (double i = 1; i > -2; i -= .5) {
             k = (int) Math.ceil(i);
@@ -452,7 +445,7 @@ public class ConnectFour {
                 } // if
             } // for
         } // for
-        // need modulo 4?
+        // TODO: need modulo 4?
         // Lastly, check S:(k = 1, j = 0)
         o |= b[3] && q(lastToken,
                         grid[n[0] + 3][n[1]],
