@@ -339,7 +339,10 @@ public class ConnectFour {
         
         // used to be a nested-if tree,
         // pardon the heavy-duty short-circuiting.
-        return false // default: not a connect-four
+        return check(lastToken, {r, c}, w, n, e, s);
+            
+        /* deprecated; replaced by check()
+                false // default: not a connect-four
                 // -east
                 || e && (q(lastToken, grid[r][c + 3], grid[r][c + 1], grid[r][c + 2])
                     // southeast
@@ -356,8 +359,7 @@ public class ConnectFour {
                         )
                 // south only
                 || s && q(lastToken, grid[r + 3][c], grid[r + 1][c], grid[r + 2][c]);
-        // return
-        // secret regex mode?????
+        */
     } // isLastDropConnectFour
 
     //----------------------------------------------------------------------------------------------
@@ -378,17 +380,6 @@ public class ConnectFour {
     } // isPlayed
 
     /**
-     * Checks whether two {@code Token} enums are equal.
-     * Inspired by <a href="https://stackoverflow.com/a/8198279">this answer
-     * on Stack Exchange</a>.
-     * 
-     * @param x   an enum of type {@code Token}
-     * @param y   another enum of type {@code Token}
-     * @return {@code true} if they are ALL equal, {@code false} otherwise
-     */
-    //static boolean q (Token x, Token y) { return x == y; }
-
-    /**
      * Token Equality: Checks whether all the elements of an array of {@code Token} enums are
      * equal, recursively.
      * Inspired by <a href="https://stackoverflow.com/a/8198279">this answer
@@ -403,30 +394,80 @@ public class ConnectFour {
     }
 
     /**
-     * Direction Check: Checks for a <em>connect four</em> on either a
-     * vertical, horizontal, or diagonal direction, each being represented by
-     * one of four cardinal compass directions (N, S, E, W) and the four
-     * inter-cardinal directions (NE, NW, SE, SW).
+     * Checks for a <em>connect four</em> in the calling {@ConnectFour} game 
+     * on all vertical, horizontal, and diagonal directions. It will only check, by way
+     * of {@code &&} short-circuiting, in the directions based on the settings (given in
+     * its third parameter {@code b}), which contain four {@code boolean} values stating
+     * whether the coordinated point is far enough from the bounds of the game board, so
+     * that there's a <em>possibility</em> of there being a <em>connect four</em> in
+     * said direction at the point (indexed in its second parameter {@code n}).
+     *
+     * <p>
+     * It is a helper method which will ONLY be called in the
+     * {@link cs1302.game.ConnectFour.isLastDropConnectFour} method, which explains the
+     * specificity of the parameters.
      * 
-     * @param c a {@code char[]} of either length one or two, which is intended
-     *          to contain the abbreviation of a/an (inter)cardinal direction in
-     *          any order, capitalized
+     * @param t a {@code Token} object, representing the last-played token
+     * @param n an {@code int} array, representing a duple of a row and a column index
+     * @param b a {@boolean} array of four values (representing the four cardinal directions)
+     * in a certain order (W->N->E->S), each representing whether it is possible to have a
+     * <em>connect four</em> in that direction from the point determined by {@code n}
      * @return {@code true} if there is at least one <em>connect four</em>, and
      *         {@code false} otherwise
-     * @throws java.lang.IllegalArgumentException if the argument does not
-     * concatenate and permute to a/an (inter)cardinal direction, or if its
-     * length is greater than 2
+     * @throws java.lang.IllegalArgumentException if the argument is not in [0,7]
      */
-    static boolean directionCheck (char...c) {
-        if (String.valueOf(c).matches("[^EW][^NS]|...+")) {
+    static boolean check (Token t, int[] n, boolean...b) {
+        if (b.length != 4 || n.length != 2) {
             throw new IllegalArgumentException(
-                "Illegal Argument: Please enter one of eight compass directions."
+                "Illegal Argument: Please check array arguments, then try again."
             );
         }
-        boolean b = false;
-        //
-        return b;
-    }
+        List<int>a = Arrays.asList(b[0], b[1], b[2], true, true, b[3]);  
+        boolean o = false;
+        for (double i = 1; i > -2; i -= .5) {
+            k = (int) Math.ceil(i);
+            for (int j = 1; j > -3; j -= 2) {
+                o |= a.get(j + 1)
+                     // East or West proximity check
+                     && a.get(i + 4)
+                     // North or South proximity check
+                     && q(lastToken,
+                          grid[n[0] + k * 3][n[1] + j * 3],
+                          grid[n[0] + k][n[1] + j],
+                          grid[n[0] + k * 2][n[1] + j * 2]);
+                if (o) {
+                    return o;
+                }
+            } // for
+        } // for
+        // need modulo 4?
+        o |= b[3] && q(lastToken,
+                        grid[n[0] + 3][n[1]],
+                        grid[n[0] + 1][n[1]],
+                        grid[n[0] + 2][n[1]]);
+        return o;
+        /*
+        Check in this order:
+        SE: (1,1)
+        SW: (1,-1)
+        E: (0,1)
+        W: (0,-1)
+        NE: (-1,1)
+        NW: (-1,-1)
+        
+        Arraylist:
+        [W,N,E,true,true,S]
+        
+        Lastly, check:
+        S: (1,0)
+        
+        Format:
+        o |= b[] && q(lastToken,
+                    grid[n[0] + k * 3][n[1] + l * 3],
+                    grid[n[0] + k][n[1] + l],
+                    grid[n[0] + k * 2][n[1] + l * 2])
+        */
+    } // check
 
     //----------------------------------------------------------------------------------------------
     // DO NOT MODIFY THE METHODS BELOW!
