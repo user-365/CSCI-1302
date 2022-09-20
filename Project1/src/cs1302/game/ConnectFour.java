@@ -1,6 +1,6 @@
 package cs1302.game;
 
-import java.util.*; // Arrays and function.IntConsumer
+import java.util.function.IntConsumer;
 import cs1302.gameutil.GamePhase;
 import cs1302.gameutil.Token;
 import cs1302.gameutil.TokenGrid;
@@ -281,18 +281,18 @@ public class ConnectFour {
             for (int i = startRow; 0 <= i && i <= r; i += j) {
                 if (isInBounds(i,c) && grid[i][c] == null) {
                     grid[i][c] = ConnectFour.this.getPlayerToken(player);
-                    ConnectFour.this.lastDropCol = c; // store last col
-                    ConnectFour.this.lastDropRow = i; // store last row
+                    ConnectFour.this.lastDropCol = c;
+                    ConnectFour.this.lastDropRow = i;
                     break; // leave asap
                 } // if
             } // for
         }; // h.f
-        if (grid[startRow][c] == null) { // if null...
+        if (grid[startRow][c] == null) { // if null (empty)...
             h.f.accept(1); // then go down
         } else { // if filled...
             h.f.accept(-1); // go up
         } // if-else
-        this.numDropped++; // one more token dropped!
+        this.numDropped++;
         if (numDropped > 3 // short-circuit if less than 4 tokens on the grid
             && isLastDropConnectFour()); // this method is also boolean so yeah! ;P
     } // dropToken
@@ -316,7 +316,7 @@ public class ConnectFour {
      */
     public boolean isLastDropConnectFour() {
         int c = this.lastDropCol, r = this.lastDropRow; // golfing var names
-        Token lastToken = getTokenAt(r, c); // last token played
+        Token lastToken = getTokenAt(r, c);
         // Proximity to bounds
         // East
         boolean e = this.cols - c > 3;
@@ -327,7 +327,7 @@ public class ConnectFour {
         // North
         boolean n = r >= 3;
         
-        if (check(lastToken, {r, c}, w, n, e, s) // connect-four
+        if (check(lastToken, {r, c}, w, n, e, s) // four-in-a-row
             || numDropped > this.rows * this.cols) { // or if grid full
             this.phase = GamePhase.OVER; // end game
         } // if
@@ -367,13 +367,14 @@ public class ConnectFour {
      *         {@link cs1302.gameutil.GamePhase#OVER} and {@code false} otherwise
      */
     static boolean isPlayed(ConnectFour c) {
-        return Arrays.asList( GamePhase.PLAYABLE, GamePhase.OVER ).contains( c.getPhase() );
+        return c.getPhase() == GamePhase.PLAYABLE || c.getPhase() == GamePhase.OVER;
     } // isPlayed
 
     /**
      * Token Equality: Checks whether all the elements of an array of {@code Token} enums are
-     * equal, recursively. Assumes the transitivity of equality. Compares each {@code Token}
-     * with the next one, shifting after each comparison.
+     * equal, through recursion.
+     * Compares the first {@code Token} with the second, then second with
+     * the third, and so on.
      * Inspired by <a href="https://stackoverflow.com/a/8198279">this answer
      * on Stack Exchange</a>.
      * 
@@ -386,13 +387,9 @@ public class ConnectFour {
     }
 
     /**
-     * Checks for a <em>connect four</em> in the calling {@ConnectFour} game 
-     * on all vertical, horizontal, and diagonal directions. It will only check, by way
-     * of {@code &&} short-circuiting, in the directions based on the settings (given in
-     * its third parameter {@code b}), which contain four {@code boolean} values stating
-     * whether the coordinated point is far enough from the bounds of the game board, so
-     * that there's a <em>possibility</em> of there being a <em>connect four</em> in
-     * said direction at the point (indexed in its second parameter {@code n}).
+     * Checks for a <em>connect four</em> on all vertical, horizontal, and diagonal
+     * directions. Via short-circuiting, it will only check in the directions where
+     * there can actually be a four-in-a-row, as opposed to running into the edge of the grid.
      *
      * <p>
      * It is a helper method which will ONLY be called in the
@@ -400,34 +397,65 @@ public class ConnectFour {
      * specificity of the parameters.
      * 
      * @param t a {@code Token} object, representing the last-played token
-     * @param n an {@code int} array, representing a duple of a row and a column index
-     * @param b a {@boolean} array of four values (representing the four cardinal directions)
-     * in a certain order (W->N->E->S), each representing whether it is possible to have a
-     * <em>connect four</em> in that direction from the point determined by {@code n}
+     * @param n an {@code int} array, representing an ordered pair of a row and a column index
+     * @param b a {@boolean} array of four values (the four cardinal directions)
+     * in a certain order (EWNS), each representing whether the last drop is far away from
+     * the edge of the grid to have a four-in-a-row in that direction
      * @return {@code true} if there is at least one <em>connect four</em>, and
      *         {@code false} otherwise
-     * @throws java.lang.IllegalArgumentException if the argument is not in [0,7]
+     * @throws java.lang.IllegalArgumentException if the argument arrays are not the right length
      */
-    static boolean check (Token t, int[] n, boolean...b) {
+    static boolean check (Token t, int r, int c, boolean...b) {
         if (b.length != 4 || n.length != 2) { // check array dims
             throw new IllegalArgumentException(
                 "Illegal Argument: Please check array arguments, then try again.");
         } // if
+        
+        int o = 0; // default: "no connect-fours"
+        
+        H<IntBinaryOperator>g = new H<>();
+        g.f = (k, l) -> {
+            int m = Math.abs(k);
+            int n = Math.abs(l);
+            for (int i = -3; i < 1; i++) {
+                for (int j = -3; j < 1; j++) {
+                    return q(grid[r + m * (i)]        [c + n * (j)],
+                             grid[r + m * (i + k * 3)][c + n * (j + l * 3)],
+                             grid[r + m * (i + k)]    [c + n * (j + l)],
+                             grid[r + m * (i + k * 2)][c + n * (j + l * 2)])
+                           ? 1 : 0;
+                }
+            }
+        }
+        
+        // ifs are for short-circuiting
+        if (e || w) { // check ALONG row
+            o += g.f.apply(0, 1);
+        }
+        if (n || s) { // check ALONG col
+            o += g.f.apply(1, 0);
+        }
+        if (e && s || w && n) { // check diag (SE)
+            o += g.f.apply(1, 1);
+        }
+        if (e && n || w && s) { // check anti-diag (NE)
+            o += g.f.apply(-1, 1); // !!!
+        }
+        
+        return o > 0; // if any four-in-a-row, o > 0
+        
+        /* deprecated x2
         // i chose this over ArrayList?...
         boolean[]a = new Array[5];
         System.arraycopy(b, 0, a, 0, 3);
         a[3] = a[4] = true;
         a[5] = b[3];
         // [W, N, E, true, true, S]; super ugly!!!
-        
-        boolean o = false; // default: "no connect-fours"
-        /*
         Check in this order:
         SE: (1,1);  SW: (1,-1);
         E: (0,1);   W: (0,-1);
         NE: (-1,1); NW: (-1,-1)
-        (Ordered decreasing in probability, supposedly)
-        */
+        (Order: decreasing in probability of happening, supposedly)
         for (double i = 1; i > -2; i -= .5) {
             k = (int) Math.ceil(i);
             for (int j = 1; j > -3; j -= 2) {
@@ -444,13 +472,7 @@ public class ConnectFour {
                 } // if
             } // for
         } // for
-        // TODO: need modulo 4?
-        // Lastly, check S:(k = 1, j = 0)
-        o |= b[3] && q(lastToken,
-                        grid[n[0] + 3][n[1]],
-                        grid[n[0] + 1][n[1]],
-                        grid[n[0] + 2][n[1]]);
-        return o;
+        */
     } // check
 
     //----------------------------------------------------------------------------------------------
