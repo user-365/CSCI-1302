@@ -327,7 +327,7 @@ public class ConnectFour {
         // North
         boolean n = r >= 3;
         
-        if (check(lastToken, {r, c}, w, n, e, s) // four-in-a-row
+        if (check(lastToken, {r, c}, e, w, n, s) // four-in-a-row
             || numDropped > this.rows * this.cols) { // or if grid full
             this.phase = GamePhase.OVER; // end game
         } // if
@@ -405,7 +405,7 @@ public class ConnectFour {
      *         {@code false} otherwise
      * @throws java.lang.IllegalArgumentException if the argument arrays are not the right length
      */
-    static boolean check (Token t, int r, int c, boolean...b) {
+    static boolean check (Token t, int r, int c, boolean e, boolean w, boolean n, boolean s) {
         if (b.length != 4 || n.length != 2) { // check array dims
             throw new IllegalArgumentException(
                 "Illegal Argument: Please check array arguments, then try again.");
@@ -417,29 +417,28 @@ public class ConnectFour {
         g.f = (k, l) -> {
             int m = Math.abs(k);
             int n = Math.abs(l);
-            for (int i = -3; i < 1; i++) {
-                for (int j = -3; j < 1; j++) {
-                    return q(grid[r + m * (i)]        [c + n * (j)],
-                             grid[r + m * (i + k * 3)][c + n * (j + l * 3)],
-                             grid[r + m * (i + k)]    [c + n * (j + l)],
-                             grid[r + m * (i + k * 2)][c + n * (j + l * 2)])
-                           ? 1 : 0;
-                }
+            for (int j = 3, i = -3; i < 1 && j > 1; i++, j--) {
+                o += q(grid[r + m * ((k > 0 ? i : j)        )][c + n * (i)],
+                       grid[r + m * ((k > 0 ? i : j) + k * 3)][c + n * (i + l * 3)],
+                       grid[r + m * ((k > 0 ? i : j) + k    )][c + n * (i + l)],
+                       grid[r + m * ((k > 0 ? i : j) + k * 2)][c + n * (i + l * 2)])
+                     ? 1 : 0;
             }
+            return -1;
         }
         
         // ifs are for short-circuiting
-        if (e || w) { // check ALONG row
-            o += g.f.apply(0, 1);
+        if (w) { // check ALONG row
+            g.f.apply(0, 1);
         }
-        if (n || s) { // check ALONG col
-            o += g.f.apply(1, 0);
+        if (s) { // check ALONG col
+            g.f.apply(1, 0);
         }
-        if (e && s || w && n) { // check diag (SE)
-            o += g.f.apply(1, 1);
+        if (w && n) { // check diag (SE)
+            g.f.apply(1, 1);
         }
-        if (e && n || w && s) { // check anti-diag (NE)
-            o += g.f.apply(-1, 1); // !!!
+        if (w && s) { // check anti-diag (NE)
+            g.f.apply(-1, 1); // !!!
         }
         
         return o > 0; // if any four-in-a-row, o > 0
