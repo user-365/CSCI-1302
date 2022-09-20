@@ -280,6 +280,7 @@ public class ConnectFour {
         } // H
         
         H<IntConsumer> h = new H<>();
+        
         h.f = j -> {
             for (int i = startRow; 0 <= i && i <= r; i += j) {
                 if (isInBounds(i,c) && grid[i][c] == null) {
@@ -421,51 +422,43 @@ public class ConnectFour {
                 "Illegal Argument: Please check array arguments, then try again."
             );
         }
-        List<int>a = Arrays.asList(b[0], b[1], b[2], true, true, b[3]);  
-        boolean o = false;
+        // i chose this over ArrayList?...
+        boolean[]a = new Array[5];
+        System.arraycopy(b, 0, a, 0, 3);
+        a[3] = a[4] = true;
+        a[5] = b[3];
+        // [W, N, E, true, true, S]
+        
+        boolean o = false; // default: "no connect-fours"
+        /*
+        Check in this order:
+        SE: (1,1);  SW: (1,-1);
+        E: (0,1);   W: (0,-1);
+        NE: (-1,1); NW: (-1,-1)
+        */
         for (double i = 1; i > -2; i -= .5) {
             k = (int) Math.ceil(i);
             for (int j = 1; j > -3; j -= 2) {
-                o |= a.get(j + 1)
-                     // East or West proximity check
-                     && a.get(i + 4)
-                     // North or South proximity check
+                o |= a[j + 1]
+                     // ^ East or West proximity check
+                     && a[i + 4]
+                     // ^ South, skipped, or North proximity check
                      && q(lastToken,
                           grid[n[0] + k * 3][n[1] + j * 3],
                           grid[n[0] + k][n[1] + j],
                           grid[n[0] + k * 2][n[1] + j * 2]);
-                if (o) {
+                if (o) { // short-circuit when verify first connect-four
                     return o;
-                }
+                } // if
             } // for
         } // for
         // need modulo 4?
+        // Lastly, check S:(k = 1, j = 0)
         o |= b[3] && q(lastToken,
                         grid[n[0] + 3][n[1]],
                         grid[n[0] + 1][n[1]],
                         grid[n[0] + 2][n[1]]);
         return o;
-        /*
-        Check in this order:
-        SE: (1,1)
-        SW: (1,-1)
-        E: (0,1)
-        W: (0,-1)
-        NE: (-1,1)
-        NW: (-1,-1)
-        
-        Arraylist:
-        [W,N,E,true,true,S]
-        
-        Lastly, check:
-        S: (1,0)
-        
-        Format:
-        o |= b[] && q(lastToken,
-                    grid[n[0] + k * 3][n[1] + l * 3],
-                    grid[n[0] + k][n[1] + l],
-                    grid[n[0] + k * 2][n[1] + l * 2])
-        */
     } // check
 
     //----------------------------------------------------------------------------------------------
