@@ -1,7 +1,6 @@
 package cs1302.game;
 
-import java.util.Arrays;
-import java.util.function.IntConsumer;
+import java.util.*; // List, Arrays, function.IntConsumer
 import cs1302.gameutil.GamePhase;
 import cs1302.gameutil.Token;
 import cs1302.gameutil.TokenGrid;
