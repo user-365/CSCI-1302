@@ -318,8 +318,7 @@ public class ConnectFour {
         int c = this.lastDropCol, r = this.lastDropRow; // golfing var names
         Token lastToken = getTokenAt(r, c);
         // Proximity to bounds
-        // East
-        boolean e = this.cols - c > 3;
+        // East (not needed)
         // West
         boolean w = c >= 3;
         // South
@@ -327,7 +326,7 @@ public class ConnectFour {
         // North
         boolean n = r >= 3;
         
-        if (check(lastToken, {r, c}, e, w, n, s) // four-in-a-row
+        if (check(game, r, c, w, n, s) // four-in-a-row
             || numDropped > this.rows * this.cols) { // or if grid full
             this.phase = GamePhase.OVER; // end game
         } // if
@@ -384,7 +383,7 @@ public class ConnectFour {
     static boolean q (Token...z) {
         return z[0] == z[1]
                 && (z.length < 3 ? true : q(Arrays.copyOfRange(z, 1, z.length)));
-    }
+    } // q
 
     /**
      * Checks for a <em>connect four</em> on all vertical, horizontal, and diagonal
@@ -396,16 +395,20 @@ public class ConnectFour {
      * {@link cs1302.game.ConnectFour.isLastDropConnectFour} method, which explains the
      * specificity of the parameters.
      * 
-     * @param t a {@code Token} object, representing the last-played token
-     * @param n an {@code int} array, representing an ordered pair of a row and a column index
-     * @param b a {@boolean} array of four values (the four cardinal directions)
-     * in a certain order (EWNS), each representing whether the last drop is far away from
-     * the edge of the grid to have a four-in-a-row in that direction
+     * @param cf a {@code ConnectFour} object, representing the current game
+     * @param r an {@code int} representing (0-indexed) row of last Drop
+     * @param c an {@code int} representing (0-indexed) col of last Drop
+     * @param w a {@code boolean} representing whether the last {@code Token} is far enough from
+     * left edge of grid (as a prerequisite for a four-in-a-row in the WEST direction)
+     * @param n a {@code boolean} representing whether the last {@code Token} is far enough from
+     * top edge of grid
+     * @param s a {@code boolean} representing whether the last {@code Token} is far enough from
+     * bottom edge of grid
      * @return {@code true} if there is at least one <em>connect four</em>, and
      *         {@code false} otherwise
      * @throws java.lang.IllegalArgumentException if the argument arrays are not the right length
      */
-    static boolean check (Token t, int r, int c, boolean e, boolean w, boolean n, boolean s) {
+    static boolean check (ConnectFour cf, int r, int c, boolean w, boolean n, boolean s) {
         if (b.length != 4 || n.length != 2) { // check array dims
             throw new IllegalArgumentException(
                 "Illegal Argument: Please check array arguments, then try again.");
@@ -414,32 +417,48 @@ public class ConnectFour {
         int o = 0; // default: "no connect-fours"
         
         H<IntBinaryOperator>g = new H<>();
-        g.f = (k, l) -> {
+        g.f = (k, l) -> { // (k, l) are the directions (key below)
             int m = Math.abs(k);
             int n = Math.abs(l);
-            for (int j = 3, i = -3; i < 1 && j > 1; i++, j--) {
-                o += q(grid[r + m * ((k > 0 ? i : j)        )][c + n * (i)],
-                       grid[r + m * ((k > 0 ? i : j) + k * 3)][c + n * (i + l * 3)],
-                       grid[r + m * ((k > 0 ? i : j) + k    )][c + n * (i + l)],
-                       grid[r + m * ((k > 0 ? i : j) + k * 2)][c + n * (i + l * 2)])
-                     ? 1 : 0;
-            }
-            return -1;
-        }
+            // (m, n) either 1 or 0
+            // i and j are used for moving down a file (vert., hori., diag., anti-diag.)
+            for (int j = 3, i = -3; i < 1 && j > 1; i++, j--) { // j only used when k = -1
+                if (r + 3 < cf.getRows() && c + 3 < cf.getCols()) // avoid AIOoBE
+                    o += q(cf.grid[r + m * ((k > 0 ? i : j)        )][c + n * (i)],
+                           cf.grid[r + m * ((k > 0 ? i : j) + k * 3)][c + n * (i + l * 3)],
+                           cf.grid[r + m * ((k > 0 ? i : j) + k    )][c + n * (i + l)],
+                           cf.grid[r + m * ((k > 0 ? i : j) + k * 2)][c + n * (i + l * 2)])
+                         ? 1 : 0; // q() -> int
+                // k>0?i:j handles checking Northward (negative k)
+                    // since always l>0, no need for ?: in col
+                // e.g., if m=0, checks only horizontally
+                // short-circuiting: checks lastDropped, then 3 away, then 1 away, then 2 away
+            } // for
+            return -1; // unused.
+        } // g.f
+        
+        /*
+        ***KEY***:
+        Directions in terms of (k, l):
+        to W: (0,1),
+        S: (1,0),
+        NW: (1,1),
+        SW: (-1,1)
+        */
         
         // ifs are for short-circuiting
         if (w) { // check ALONG row
             g.f.apply(0, 1);
-        }
+        } // if
         if (s) { // check ALONG col
             g.f.apply(1, 0);
-        }
+        } // if
         if (w && n) { // check diag (SE)
             g.f.apply(1, 1);
-        }
+        } // if
         if (w && s) { // check anti-diag (NE)
-            g.f.apply(-1, 1); // !!!
-        }
+            g.f.apply(-1, 1); // fixed with k>0?i:j
+        } // if
         
         return o > 0; // if any four-in-a-row, o > 0
         
@@ -450,10 +469,6 @@ public class ConnectFour {
         a[3] = a[4] = true;
         a[5] = b[3];
         // [W, N, E, true, true, S]; super ugly!!!
-        Check in this order:
-        SE: (1,1);  SW: (1,-1);
-        E: (0,1);   W: (0,-1);
-        NE: (-1,1); NW: (-1,-1)
         (Order: decreasing in probability of happening, supposedly)
         for (double i = 1; i > -2; i -= .5) {
             k = (int) Math.ceil(i);
