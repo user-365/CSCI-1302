@@ -144,7 +144,7 @@ public class ConnectFour {
             throw new NullPointerException(
                 "Null argument(s): Neither argument can be null.");
         } // if
-        if (isPlayed(this)) {
+        if (isPlayed()) {
             throw new IllegalStateException(
                 "Wrong phase: Tokens can only be assigned upon creation of a new game.");
         } // if
@@ -186,7 +186,7 @@ public class ConnectFour {
      *     {@link cs1302.gameutil.GamePhase#NEW} or {@link cs1302.gameutil.GamePhase#READY}.
      */
     public int getNumDropped() {
-        if (!isPlayed(this)) {
+        if (!isPlayed()) {
             throw new IllegalStateException(
                 "Wrong phase: The game just started; no tokens are on the board yet.");
         } // if
@@ -202,7 +202,7 @@ public class ConnectFour {
      *     {@link cs1302.gameutil.GamePhase#NEW} or {@link cs1302.gameutil.GamePhase#READY}.
      */
     public int getLastDropRow() {
-        if (!isPlayed(this)) {
+        if (!isPlayed()) {
             throw new IllegalStateException(
                 "Wrong phase: The game just started; no tokens are on the board yet.");
         } // if
@@ -218,7 +218,7 @@ public class ConnectFour {
      *     {@link cs1302.gameutil.GamePhase#NEW} or {@link cs1302.gameutil.GamePhase#READY}.
      */
     public int getLastDropCol() {
-        if (!isPlayed(this)) {
+        if (!isPlayed()) {
             throw new IllegalStateException(
                 "Wrong phase: The game just started; no tokens are on the board yet.");
         }
@@ -273,9 +273,9 @@ public class ConnectFour {
          h.f = j -> {
              for (int i = startRow; 0 <= i && i <= r; i += j) {
                  if (isInBounds(i,c) && grid[i][c] == null) {
-                     grid[i][c] = ConnectFour.this.getPlayerToken(player);
-                     ConnectFour.this.lastDropCol = c;
-                     ConnectFour.this.lastDropRow = i;
+                     grid[i][c] = this.getPlayerToken(player);
+                     this.lastDropCol = c;
+                     this.lastDropRow = i;
                      break; // leave asap
                  } // if
              } // for
@@ -315,12 +315,12 @@ public class ConnectFour {
          // East (not needed)
          // West
          boolean w = c >= 3;
-         // South
+         // South (not needed?)
          boolean s = this.rows - r > 3;
          // North
          boolean n = r >= 3;
 
-         if (check(this, r, c, w, n, s) // four-in-a-row
+         if (check(r, c, w, n, s) // four-in-a-row
              || numDropped >= this.rows * this.cols) { // or if grid full
              this.phase = GamePhase.OVER; // end game
          } // if
@@ -365,13 +365,12 @@ public class ConnectFour {
      /**
       * PLAYABLE or OVER: Returns a boolean based on the current phase of the game.
       *
-      * @param c an object of type {@code ConnectFour} representing a game.
       * @return {@code true} if {@link #getPhase getPhase()} returns
       *         {@link cs1302.gameutil.GamePhase#PLAYABLE} or
       *         {@link cs1302.gameutil.GamePhase#OVER} and {@code false} otherwise
       */
-     static boolean isPlayed(ConnectFour c) {
-         return c.getPhase() == GamePhase.PLAYABLE || c.getPhase() == GamePhase.OVER;
+     boolean isPlayed() {
+         return getPhase() == GamePhase.PLAYABLE || getPhase() == GamePhase.OVER;
      } // isPlayed
 
     /**
@@ -400,7 +399,6 @@ public class ConnectFour {
       * {@link cs1302.game.ConnectFour.isLastDropConnectFour} method, which explains the
       * specificity of the parameters.
       *
-      * @param cf a {@code ConnectFour} object, representing the current game
       * @param r an {@code int} representing (0-indexed) row of last Drop
       * @param c an {@code int} representing (0-indexed) col of last Drop
       * @param w a {@code boolean} representing whether the last {@code Token} is far enough from
@@ -412,35 +410,42 @@ public class ConnectFour {
       * @return {@code true} if there is at least one <em>connect four</em>, and
       *         {@code false} otherwise
       */
-    boolean check (ConnectFour cf, int r, int c, boolean w, boolean north, boolean s) {
+    boolean check (int r, int c, boolean w, boolean north, boolean s) {
          H<IntBinaryOperator>g = new H<>();
-         g.f = (k, l) -> { // (k, l) are the directions (key below)
+        
+         @FunctionalInterface
+         
+         
+        
+         H<
+         g.f = (k, l) -> { // (k, l) are the directions (key below g.f)
              int m = Math.abs(k);
              int n = Math.abs(l);
-             int o = 0; // default: "no connect-fours"
              // (m, n) either 1 or 0
+             int o = 0; // default: "no connect-fours"
              // i and j are used for moving down a file (vert., hori., diag., anti-diag.)
-             for (int j = 3, i = -3; i < 1 && j > 1; i++, j--) { // j only used when k = -1
-                 if (r + 3 < cf.getRows() && c + 3 < cf.getCols()) { // avoid AIOoBE
-                     o += q(cf.grid[r + m * ((k > 0 ? i : j)        )][c + n * (i)],
-                            cf.grid[r + m * ((k > 0 ? i : j) + k * 3)][c + n * (i + l * 3)],
-                            cf.grid[r + m * ((k > 0 ? i : j) + k    )][c + n * (i + l)],
-                            cf.grid[r + m * ((k > 0 ? i : j) + k * 2)][c + n * (i + l * 2)])
+             for (int i = -3; i < 1; i++) {
+                 // if (rmki-i < 0) { i++; }
+                 if (r + 1 < getRows() && c + 1 < getCols()) { // avoid AIOoBE towards SE
+                     o += q(grid[r + m * ((k > 0 ? i : -i)        )][c + n * (i)],
+                            grid[r + m * ((k > 0 ? i : -i) + k * 3)][c + n * (i + l * 3)],
+                            grid[r + m * ((k > 0 ? i : -i) + k    )][c + n * (i + l)],
+                            grid[r + m * ((k > 0 ? i : -i) + k * 2)][c + n * (i + l * 2)])
                           ? 1 : 0; // q() -> int
-                 // k>0?i:j handles checking Northward/negative, (always l>0->no need for ?: in col)
+                 // k>0?i:-i handles checking Northward/negative, (always l>0->no need for ?: in col)
                  // e.g., if m=0, checks only horizontally
                  // short-circuiting: checks lastDropped, then 3 away, then 1 away, then 2 away
                  } // if
              } // for
              return o;
          }; // g.f
-         //Directions in terms of (k, l): to W: (0,1), S: (1,0), NW: (1,1), SW: (-1,1)
+         // Directions in terms of (k, l): to W: (0,1), S: (1,0), NW: (1,1), SW: (-1,1)
          // short-circuiting :)
          return (w ? g.f.applyAsInt(0, 1) : 0) // check ALONG row
-             + (s ? g.f.applyAsInt(1, 0) : 0) // check ALONG col
+             + (north ? g.f.applyAsInt(1, 0) : 0) // check ALONG col
              + (w && north ? g.f.applyAsInt(1, 1) : 0) // check diag (SE)
              // check anti-diag (NE)
-             + (w && s ? g.f.applyAsInt(-1, 1) : 0) // fixed with k>0?i:j
+             + (w && s ? g.f.applyAsInt(-1, 1) : 0) // fixed with k>0?i:-i
              > 0;
 
          /* deprecated x2448         boolean[]a = new Array[5];
