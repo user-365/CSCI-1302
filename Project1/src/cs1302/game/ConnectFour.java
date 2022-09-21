@@ -310,41 +310,23 @@ public class ConnectFour {
       *     {@code false}
       */
      public boolean isLastDropConnectFour() {
-         int c = this.lastDropCol, r = this.lastDropRow; // golfing var names
+         int col = this.lastDropCol, row = this.lastDropRow; // golfing var names
          // Proximity to bounds
          // East (not needed)
          // West
-         boolean w = c >= 3;
+         boolean west = col >= 3;
          // South (not needed?)
-         boolean s = this.rows - r > 3;
+         boolean south = this.rows - row > 3;
          // North
-         boolean n = r >= 3;
+         boolean north = row >= 3;
 
-         if (check(r, c, w, n, s) // four-in-a-row
+         if (check(row, col, west, north, south) // four-in-a-row
              || numDropped >= this.rows * this.cols) { // or if grid full
              this.phase = GamePhase.OVER; // end game
          } // if
          this.phase = GamePhase.PLAYABLE;
          return false;
-         /* deprecated; replaced by check()
-         return  false // default: not a connect-four
-                 // -east
-                 || e && (q(lastToken, grid[r][c + 3], grid[r][c + 1], grid[r][c + 2])
-                     // southeast
-                     || s && q(lastToken, grid[r + 3][c + 3], grid[r + 1][c + 1], grid[r + 2][c + 2])
-                     // northeast
-                     || n && q(lastToken, grid[r - 3][c + 3], grid[r - 1][c + 1], grid[r - 2][c + 2])
-                         )
-                 // -west
-                 || w && (q(lastToken, grid[r][c - 3], grid[r][c - 1], grid[r][c - 2])
-                     // southwest
-                     || s && q(lastToken, grid[r + 3][c - 3], grid[r + 1][c - 1], grid[r + 2][c - 2])
-                     // northwest
-                     || n && q(lastToken, grid[r - 3][c - 3], grid[r - 1][c - 1], grid[r - 2][c - 2])
-                         )
-                 // south only
-                 || s && q(lastToken, grid[r + 3][c], grid[r + 1][c], grid[r + 2][c]);
-         */
+         // deprecated; replaced by check(), used to be a ||, && tree
      } // isLastDropConnectFour
 
     //----------------------------------------------------------------------------------------------
@@ -353,8 +335,11 @@ public class ConnectFour {
     //----------------------------------------------------------------------------------------------
 
     /**
-      * H is short for "Helper". Single-purpose class to house a method which
-      * will save a few lines of code. Did this as proof of concept.
+      * H, short for "Helper", is a single-purpose Class to house a method {@code f} which
+      * will save me a few lines of code, wherever it is used. Did this as proof of concept.
+      * Justification: i need specific helper methods to condense functionality in bigger
+      * methods. Defining those helper methods locally increases readability, but Java doesn't
+      * allow me to define a method within a method. So i did a parameterized functional interface.
       *
       * @param <I> - Functional Interface Type
       */
@@ -384,9 +369,9 @@ public class ConnectFour {
      * @param z   a varargs of type {@code Token}
      * @return {@code true} if they are ALL equal, {@code false} otherwise
      */
-    static boolean q (Token...z) {
+    static boolean equal (Token...z) {
         return z[0] == z[1]
-                && (z.length < 3 ? true : q(Arrays.copyOfRange(z, 1, z.length)));
+                && (z.length < 3 ? true : equal(Arrays.copyOfRange(z, 1, z.length)));
     } // q
 
     /**
@@ -410,57 +395,57 @@ public class ConnectFour {
       * @return {@code true} if there is at least one <em>connect four</em>, and
       *         {@code false} otherwise
       */
-    boolean check (int r, int c, boolean w, boolean north, boolean s) {
-         H<IntBinaryOperator>g = new H<>();
-        
+    boolean check (int row, int col, boolean west, boolean north, boolean south) {
          @FunctionalInterface
-         
-         
+         interface IntTernaryOperator {
+            int compute (int xOrY, int i, int coef);
+         }
+         H<IntBinaryOperator>coordsToNumMatches = new H<>();
+         H<IntTernaryOperator>delta = new H<>();
+         // "delta" means "change in (a variable)"
+         delta.f = (xOrY, i, coef) -> Math.abs(xOrY) * ((xOrY > 0 ? i : -i) + (coef * xOrY));
+         // param-arg name redundancy justified because it's a single-purpose function
+         // xOrY>0?i:-i handles checking Northward/negative,
+         // ^ for x, i will never be turned negative (see ternary)
+         // e.g., if Math.abs(y)=0, checks only horizontally
         
-         H<
-         g.f = (k, l) -> { // (k, l) are the directions (key below g.f)
-             int m = Math.abs(k);
-             int n = Math.abs(l);
-             // (m, n) either 1 or 0
-             int o = 0; // default: "no connect-fours"
-             // i and j are used for moving down a file (vert., hori., diag., anti-diag.)
-             for (int i = -3; i < 1; i++) {
-                 // if (rmki-i < 0) { i++; }
-                 if (r + 1 < getRows() && c + 1 < getCols()) { // avoid AIOoBE towards SE
-                     o += q(grid[r + m * ((k > 0 ? i : -i)        )][c + n * (i)],
-                            grid[r + m * ((k > 0 ? i : -i) + k * 3)][c + n * (i + l * 3)],
-                            grid[r + m * ((k > 0 ? i : -i) + k    )][c + n * (i + l)],
-                            grid[r + m * ((k > 0 ? i : -i) + k * 2)][c + n * (i + l * 2)])
-                          ? 1 : 0; // q() -> int
-                 // k>0?i:-i handles checking Northward/negative, (always l>0->no need for ?: in col)
-                 // e.g., if m=0, checks only horizontally
-                 // short-circuiting: checks lastDropped, then 3 away, then 1 away, then 2 away
+         coordsToNumMatches.f = (y, x) -> { // (y, x) are the compass directions turned into ordered pairs
+             // y and x are used for moving down a file (vert., hori., diag., anti-diag.)
+             // 2D arrays go down a row first, so excuse me for switching their order. y = vert/row, x = hor/col
+             int numMatches = 0; // default: "no connect-fours"
+             for (int i = -3, index; i < 1; i++) {
+                 // avoiding ArrayIndexOutOfBounds for negative indices
+                 if (index = row + delta.f.compute(y, i, 1) < 0) {
+                     i += Math.abs(y) * -index; // the Math.abs() coef to make sure horiz and vert are independent
+                 } // if
+                 if (index = col + delta.f.compute(x, i, 1) < 0) {
+                     i += Math.abs(x) * -index; // same as above but for going across columns/horizontally
+                 } // if
+                 if (row + 1 < getRows() && col + 1 < getCols()) { // avoid AIOOBE for big positive indices
+                     o += equal(grid[row + delta.f.compute(y, i, 0)]
+                                    [col + delta.f.compute(x, i, 0)], // 0 away (lastDropped)
+                                grid[row + delta.f.compute(y, i, 3)]
+                                    [col + delta.f.compute(x, i, 3)], // 3 away
+                                grid[row + delta.f.compute(y, i, 1)]
+                                    [col + delta.f.compute(x, i, 1)], // 1 away
+                                grid[row + delta.f.compute(y, i, 2)]
+                                    [col + delta.f.compute(x, i, 2)]) // 2 away
+                            // the order is this way to short-circuit
+                            ? 1 : 0; // boolean -> int
                  } // if
              } // for
-             return o;
-         }; // g.f
-         // Directions in terms of (k, l): to W: (0,1), S: (1,0), NW: (1,1), SW: (-1,1)
+             return numMatches;
+         }; // coordsToNumMatches.f
+         // Directions in terms of (y, x): towards West: (0,1), South: (1,0), NW: (1,1), SW: (-1,1)
+         // aw i just realized (y, x) still doesn't match cartesian (W should be negative)
          // short-circuiting :)
-         return (w ? g.f.applyAsInt(0, 1) : 0) // check ALONG row
-             + (north ? g.f.applyAsInt(1, 0) : 0) // check ALONG col
-             + (w && north ? g.f.applyAsInt(1, 1) : 0) // check diag (SE)
-             // check anti-diag (NE)
-             + (w && s ? g.f.applyAsInt(-1, 1) : 0) // fixed with k>0?i:-i
-             > 0;
-
-         /* deprecated x2448         boolean[]a = new Array[5];
-         System.arraycopy(b, 0, a, 0, 3);
-         a[3] = a[4] = true;
-         a[5] = b[3];
-         // [W, N, E, true, true, S]; super ugly!!!
-         for (double i = 1; i > -2; i -= .5) {
-             k = (int) Math.ceil(i);
-             for (int j = 1; j > -3; j -= 2) {
-                 o |= a[j + 1]
-                      && a[i + 4]
-                 if (o) { // short-circuit when verify first connect-four
-                     return o;
-         */
+         return (west ? coordsToNumMatches.f.applyAsInt(0, 1) : 0) // check ALONG row
+              + (north ? coordsToNumMatches.f.applyAsInt(1, 0) : 0) // check ALONG col
+              + (west && north ? coordsToNumMatches.f.applyAsInt(1, 1) : 0) // check diag (SE)
+              // check anti-diag (NE)
+              + (west && south ? coordsToNumMatches.f.applyAsInt(-1, 1) : 0) // fixed with k>0?i:-i
+              > 0; // int -> boolean
+         // deprecated: replaced by the for loop, used to be an ugly array w/ index-pattern dowsing
      } // check
 
     //----------------------------------------------------------------------------------------------
