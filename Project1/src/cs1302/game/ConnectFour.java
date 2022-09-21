@@ -120,7 +120,7 @@ public class ConnectFour {
         if (!isInBounds(row, col)) {
             throw new IndexOutOfBoundsException(
                 "Out of bounds: Please make sure that 1 ≤ row ≤ %d and 1 ≤ col ≤ %d."
-                .formatted(rows, cols));
+                .format(rows, cols));
         } // if
         return this.grid[row][col]; // != null ? this.grid[row][col] : null;???
     } // getTokenAt
@@ -311,7 +311,6 @@ public class ConnectFour {
       */
      public boolean isLastDropConnectFour() {
          int c = this.lastDropCol, r = this.lastDropRow; // golfing var names
-         Token lastToken = getTokenAt(r, c);
          // Proximity to bounds
          // East (not needed)
          // West
