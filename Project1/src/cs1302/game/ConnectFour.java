@@ -120,7 +120,7 @@ public class ConnectFour {
         if (!isInBounds(row, col)) {
             throw new IndexOutOfBoundsException(
                 "Out of bounds: Please make sure that 1 ≤ row ≤ %d and 1 ≤ col ≤ %d."
-                .format(rows, cols));
+                .formatted(rows, cols)); // screw you, you gaslighting, outdated compiler!
         } // if
         return this.grid[row][col]; // != null ? this.grid[row][col] : null;???
     } // getTokenAt
