@@ -462,7 +462,7 @@ public class ConnectFour {
          o += coordsToNumMatches.f.applyAsInt(1, 1);
          System.out.println("-1,1");
          o += coordsToNumMatches.f.applyAsInt(-1, 1);
-        
+         return o>0;
          
          /*   
          return coordsToNumMatches.f.applyAsInt(0, 1) // check ALONG row
