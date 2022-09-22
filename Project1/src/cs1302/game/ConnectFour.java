@@ -415,24 +415,24 @@ public class ConnectFour {
              // i.e., y = vert/row, x = hor/col
              int numMatches = 0; // default: "no connect-fours"
              int maxI = 1; // default: tetromino-frame shifts (1-(-3)=)4 times
-             for (int i = -3, ; i < maxI; i++) {
+             for (int i = -3, adjustment; i < maxI; i++) {
                  // avoiding ArrayIndexOutOfBounds for negative indices
-                 if ((index = row + delta.f.compute(y, i, 3)) < 0) {
+                 if ((adjustment = row + delta.f.compute(y, i, 3)) < 0) {
                      // coef to ensure horiz & vert independent of each other
                      // (e.g. if y = 0, i doesn't change in this if block)
-                     i += Math.abs(y) * -index; // index negative so we negate it
+                     i += Math.abs(y) * -adjustment; // index negative so we negate it
                  } // if
-                 if ((index = col + delta.f.compute(x, i, 3)) < 0) {
+                 if ((adjustment = col + delta.f.compute(x, i, 3)) < 0) {
                      // same as above but going across columns/horizontally
-                     i += Math.abs(x) * -index;
+                     i += Math.abs(x) * -adjustment;
                  } // if
                  // below 2 ifs ADJUST indices one iteration AHEAD
                  // avoid AIOOBE for big positive indices
-                 if ((index = row + delta.f.compute(y, i, 4)) >= maxI) {
-                     maxI -= Math.abs(y) * (index - maxI + 3);
+                 if ((adjustment = row + delta.f.compute(y, i, 4)) >= maxI) {
+                     maxI -= Math.abs(y) * (adjustment - maxI + 3);
                  } // if
-                 if ((index = col + delta.f.compute(x, i, 4)) >= maxI) {
-                     maxI -= Math.abs(x) * (index - maxI + 3);
+                 if ((adjustment = col + delta.f.compute(x, i, 4)) >= maxI) {
+                     maxI -= Math.abs(x) * (adjustment - maxI + 3);
                  } // if
                  // serendipitously, the above also implicitly adjusts for diagonals too,
                  // since diagonals are slope=±1, i & maxI are the same for both row and col.
