@@ -417,26 +417,24 @@ public class ConnectFour {
              int maxI = 1; // default: tetromino-frame shifts (1-(-3)=)4 times
              for (int i = -3, adjustment; i < maxI; i++) {
                  // avoiding ArrayIndexOutOfBounds for negative indices
-                 if ((adjustment = row + delta.f.compute(y, i, 0)) < 0) {
-                     // coef to ensure horiz & vert independent of each other
+                 // i==-3&& to short-circuit (bc happens only initially)
+                 if (i == -3 && ((adjustment = row - 3) < 0
+                              || (adjustment = col - 3) < 0)) {
+                     // abs coef to ensure horiz & vert independent of each other
                      // (e.g. if y = 0, i doesn't change in this if block)
-                     i += Math.abs(y) * -adjustment; // index negative so we negate it
-                 } // if
-                 if ((adjustment = col + delta.f.compute(x, i, 0)) < 0) {
-                     // same as above but going across columns/horizontally
-                     i += Math.abs(x) * -adjustment;
+                     i += Math.max(Math.abs(y) * -adjustment,
+                                   Math.abs(x) * -adjustment); // adjustment<0 so we negate it
                  } // if
                  // below 2 ifs ADJUST indices one iteration AHEAD
                  // avoid AIOOBE for big positive indices
-                 if ((adjustment = row + delta.f.compute(y, i, 4)) >= maxI) {
-                     maxI -= Math.abs(y) * (adjustment - maxI + 3);
-                 } // if
-                 if ((adjustment = col + delta.f.compute(x, i, 4)) >= maxI) {
-                     maxI -= Math.abs(x) * (adjustment - maxI + 3);
+                 if ((adjustment = row + 4) >= maxI
+                  || (adjustment = col + 4) >= maxI) {
+                     maxI -= Math.max(Math.abs(y) * (adjustment - maxI + 3),
+                                      Math.abs(x) * (adjustment - maxI + 3);
                  } // if
                  // serendipitously, the above also implicitly adjusts for diagonals too,
                  // since diagonals are slope=±1, i & maxI are the same for both row and col.
-                 // don't combine the ifs, though, because that's more computation per eval.
+                 // uses Math.max to get the needed adjustment for BOTH y and x.
                  numMatches += equal(grid[row + delta.f.compute(y, i, 0)]
                                          [col + delta.f.compute(x, i, 0)], // lastDrop
                                      grid[row + delta.f.compute(y, i, 3)]
