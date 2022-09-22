@@ -430,7 +430,7 @@ public class ConnectFour {
                  if ((adjustment = row + 4) >= maxI
                   || (adjustment = col + 4) >= maxI) {
                      maxI -= Math.max(Math.abs(y) * (adjustment - maxI + 3),
-                                      Math.abs(x) * (adjustment - maxI + 3);
+                                      Math.abs(x) * (adjustment - maxI + 3));
                  } // if
                  // serendipitously, the above also implicitly adjusts for diagonals too,
                  // since diagonals are slope=±1, i & maxI are the same for both row and col.
