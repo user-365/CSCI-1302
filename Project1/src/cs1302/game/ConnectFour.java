@@ -270,7 +270,7 @@ public class ConnectFour {
          // estimate where last token is, then find next empty (null) cell
          int startRow = r - (int) Math.round(numDropped / this.cols); // estim. avg unfilled row
 
-         H<IntConsumer> h = new H<>(); // int -> void
+         H <IntConsumer> h = new H<>(); // int -> void
          h.f = j -> {
              for (int i = startRow; 0 <= i && i <= r; i += j) {
                  if (isInBounds(i,c) && grid[i][c] == null) {
@@ -289,7 +289,7 @@ public class ConnectFour {
          this.numDropped++;
          if (numDropped > 3 // short-circuit if less than 4 tokens on the grid
              && isLastDropConnectFour()) { // this method is also boolean so yeah! ;P
-                 ;
+                 this.phase = GamePhase.OVER;
          }
     } // dropToken
 
@@ -311,17 +311,12 @@ public class ConnectFour {
       *     {@code false}
       */
      public boolean isLastDropConnectFour() {
+         // deprecated: made 4 proximity-to-bounds booleans, which doesn't apply
+         // when checking entire rows. also, previous method DID NOT CHECK FOR
+         // EVERY POSSIBLE CONNECT FOUR AT THAT POINT, only connect-fours with an
+         // endpoint at lastDrop location. *facepalm*
          int col = this.lastDropCol, row = this.lastDropRow; // golfing var names
-         // Proximity to bounds
-         // East (not needed)
-         // West
-         boolean west = col >= 3;
-         // South (not needed?)
-         boolean south = this.rows - row > 3;
-         // North
-         boolean north = row >= 3;
-
-         if (check(row, col, west, north, south) // four-in-a-row
+         if (check(row, col) // four-in-a-row
              || numDropped >= this.rows * this.cols) { // or if grid full
              this.phase = GamePhase.OVER; // end game
          } // if
@@ -387,16 +382,10 @@ public class ConnectFour {
       *
       * @param row an {@code int} representing (0-indexed) row of last Drop
       * @param col an {@code int} representing (0-indexed) col of last Drop
-      * @param west a {@code boolean} representing whether the last {@code Token} is far enough from
-      * left edge of grid (as a prerequisite for a four-in-a-row in the WEST direction)
-      * @param north a {@code boolean} representing whether the last {@code Token} is far enough from
-      * top edge of grid
-      * @param south a {@code boolean} representing whether the last {@code Token} is far enough from
-      * bottom edge of grid
       * @return {@code true} if there is at least one <em>connect four</em>, and
       *         {@code false} otherwise
       */
-    boolean check (int row, int col, boolean west, boolean north, boolean south) {
+    boolean check (int row, int col) {
          @FunctionalInterface
          interface IntTernaryOperator {
             int compute (int xOrY, int i, int coef);
