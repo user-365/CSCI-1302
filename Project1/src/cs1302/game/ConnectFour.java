@@ -428,10 +428,11 @@ public class ConnectFour {
                  } // if
                  // below 2 ifs ADJUST indices one iteration AHEAD
                  // avoid AIOOBE for big positive indices
-                 if ((adjustment = row + delta.f.compute(y, i, 4)) >= maxI
-                  || (adjustment = col + delta.f.compute(x, i, 4)) >= maxI) {
-                     maxI -= Math.max(Math.abs(y) * (adjustment - maxI + 3),
-                                      Math.abs(x) * (adjustment - maxI + 3));
+                 if ((adjustment = row + delta.f.compute(y, i, 4)) >= maxI) {
+                     maxI -= Math.abs(y) * (adjustment - maxI + 3);
+                 } // if
+                 if ((adjustment = col + delta.f.compute(x, i, 4)) >= maxI) {
+                     maxI -= Math.abs(x) * (adjustment - maxI + 3);
                  } // if
                  // serendipitously, the above also implicitly adjusts for diagonals too,
                  // since diagonals are slope=±1, i & maxI are the same for both row and col.
