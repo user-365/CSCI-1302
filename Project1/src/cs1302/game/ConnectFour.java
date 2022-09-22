@@ -453,11 +453,24 @@ public class ConnectFour {
          // Directions in terms of (y, x): towards West: (0,1), South: (1,0), NW: (1,1), SW: (-1,1)
          // aw i just realized (y, x) still doesn't match cartesian (W should be negative)
          // short-circuiting :)
+         int o = 0;
+         System.out.println("0,1");
+         o += coordsToNumMatches.f.applyAsInt(0, 1);
+         System.out.println("1,0");
+         o += coordsToNumMatches.f.applyAsInt(1, 0);
+         System.out.println("1,1");
+         o += coordsToNumMatches.f.applyAsInt(1, 1);
+         System.out.println("-1,1");
+         o += coordsToNumMatches.f.applyAsInt(-1, 1);
+        
+         
+         /*   
          return coordsToNumMatches.f.applyAsInt(0, 1) // check ALONG row
               + coordsToNumMatches.f.applyAsInt(1, 0) // check ALONG col
               + coordsToNumMatches.f.applyAsInt(1, 1) // check diag (SE)
               + coordsToNumMatches.f.applyAsInt(-1,1) // check anti-diag (NE)
               > 0; // int -> boolean
+         */
          // deprecated: replaced by the for loop, used to be an ugly array w/ index-pattern dowsing
      } // check
 
