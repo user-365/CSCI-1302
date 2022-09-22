@@ -416,7 +416,6 @@ public class ConnectFour {
              int numMatches = 0; // default: "no connect-fours"
              int maxI = 1; // default: tetromino-frame shifts (1-(-3)=)4 times
              for (int i = -3, adjustment; i < maxI; i++) {
-                 System.out.println("i:"+i+"\nmaxI:"+maxI);
                  // avoiding ArrayIndexOutOfBounds for negative indices
                  // i==-3&& to short-circuit (bc happens only initially)
                  // since check only initially, use row instead of row+delta
@@ -438,7 +437,8 @@ public class ConnectFour {
                  // serendipitously, the above also implicitly adjusts for diagonals too,
                  // since diagonals are slope=±1, i & maxI are the same for both row and col.
                  // uses Math.max to get the needed adjustment for BOTH y and x.
-                 numMatches += equal(grid[row + delta.f.compute(y, i, 0)]
+                 try { // i give up
+                    numMatches += equal(grid[row + delta.f.compute(y, i, 0)]
                                          [col + delta.f.compute(x, i, 0)], // lastDrop
                                      grid[row + delta.f.compute(y, i, 3)]
                                          [col + delta.f.compute(x, i, 3)], // 3 away
@@ -448,30 +448,20 @@ public class ConnectFour {
                                          [col + delta.f.compute(x, i, 2)]) // 2 away
                                 // the order is this way to short-circuit
                                 ? 1 : 0; // boolean -> int
+                 } catch (ArrayIndexOutOfBoundsException aioobe) {
+                     ;
+                 }
              } // for
              return numMatches;
          }; // coordsToNumMatches.f
          // Directions in terms of (y, x): towards West: (0,1), South: (1,0), NW: (1,1), SW: (-1,1)
          // aw i just realized (y, x) still doesn't match cartesian (W should be negative)
          // short-circuiting :)
-         int o = 0;
-         System.out.println("0,1");
-         o += coordsToNumMatches.f.applyAsInt(0, 1);
-         System.out.println("1,0");
-         o += coordsToNumMatches.f.applyAsInt(1, 0);
-         System.out.println("1,1");
-         o += coordsToNumMatches.f.applyAsInt(1, 1);
-         System.out.println("-1,1");
-         o += coordsToNumMatches.f.applyAsInt(-1, 1);
-         return o>0;
-         
-         /*   
          return coordsToNumMatches.f.applyAsInt(0, 1) // check ALONG row
               + coordsToNumMatches.f.applyAsInt(1, 0) // check ALONG col
               + coordsToNumMatches.f.applyAsInt(1, 1) // check diag (SE)
               + coordsToNumMatches.f.applyAsInt(-1,1) // check anti-diag (NE)
               > 0; // int -> boolean
-         */
          // deprecated: replaced by the for loop, used to be an ugly array w/ index-pattern dowsing
      } // check
 
