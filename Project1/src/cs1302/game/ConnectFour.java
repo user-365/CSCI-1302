@@ -1,5 +1,6 @@
 package cs1302.game;
 
+import java.lang.ArrayIndexOutOfBoundsException;
 import java.util.function.IntConsumer;
 import java.util.function.IntBinaryOperator;
 import java.util.Arrays;
