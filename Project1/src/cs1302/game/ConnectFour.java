@@ -384,13 +384,13 @@ public class ConnectFour {
       * {@link cs1302.game.ConnectFour.isLastDropConnectFour} method, which explains the
       * specificity of the parameters.
       *
-      * @param r an {@code int} representing (0-indexed) row of last Drop
-      * @param c an {@code int} representing (0-indexed) col of last Drop
-      * @param w a {@code boolean} representing whether the last {@code Token} is far enough from
+      * @param row an {@code int} representing (0-indexed) row of last Drop
+      * @param col an {@code int} representing (0-indexed) col of last Drop
+      * @param west a {@code boolean} representing whether the last {@code Token} is far enough from
       * left edge of grid (as a prerequisite for a four-in-a-row in the WEST direction)
       * @param north a {@code boolean} representing whether the last {@code Token} is far enough from
       * top edge of grid
-      * @param s a {@code boolean} representing whether the last {@code Token} is far enough from
+      * @param south a {@code boolean} representing whether the last {@code Token} is far enough from
       * bottom edge of grid
       * @return {@code true} if there is at least one <em>connect four</em>, and
       *         {@code false} otherwise
@@ -399,51 +399,64 @@ public class ConnectFour {
          @FunctionalInterface
          interface IntTernaryOperator {
             int compute (int xOrY, int i, int coef);
-         }
-         H<IntBinaryOperator>coordsToNumMatches = new H<>();
-         H<IntTernaryOperator>delta = new H<>();
-         // "delta" means "change in (a variable)"
+         } // IntTernaryOperator
+         H <IntBinaryOperator> coordsToNumMatches = new H<>();
+         H <IntTernaryOperator> delta = new H<>();
+         // "delta" means "change in (a variable)." Here, delta changes the row/col index
          delta.f = (xOrY, i, coef) -> Math.abs(xOrY) * ((xOrY > 0 ? i : -i) + (coef * xOrY));
          // param-arg name redundancy justified because it's a single-purpose function
-         // xOrY>0?i:-i handles checking Northward/negative,
+         // (xOrY)>0?i:-i handles checking Northward/negative direction (i.e., -i)
          // ^ for x, i will never be turned negative (see ternary)
          // e.g., if Math.abs(y)=0, checks only horizontally
         
-         coordsToNumMatches.f = (y, x) -> { // (y, x) are the compass directions turned into ordered pairs
+         coordsToNumMatches.f = (y, x) -> { // (y, x): compass directions turned into ordered pairs
              // y and x are used for moving down a file (vert., hori., diag., anti-diag.)
-             // 2D arrays go down a row first, so excuse me for switching their order. y = vert/row, x = hor/col
+             // 2D arrays go down a row first, so x and y are switched.
+             // i.e., y = vert/row, x = hor/col
              int numMatches = 0; // default: "no connect-fours"
-             for (int i = -3, index; i < 1; i++) {
+             int maxI = 1; // default: tetromino-frame shifts (1-(-3)=)4 times
+             for (int i = -3, ; i < maxI; i++) {
                  // avoiding ArrayIndexOutOfBounds for negative indices
-                 if (index = row + delta.f.compute(y, i, 1) < 0) {
-                     i += Math.abs(y) * -index; // the Math.abs() coef to make sure horiz and vert are independent
+                 if ((index = row + delta.f.compute(y, i, 3)) < 0) {
+                     // coef to ensure horiz & vert independent of each other
+                     // (e.g. if y = 0, i doesn't change in this if block)
+                     i += Math.abs(y) * -index; // index negative so we negate it
                  } // if
-                 if (index = col + delta.f.compute(x, i, 1) < 0) {
-                     i += Math.abs(x) * -index; // same as above but for going across columns/horizontally
+                 if ((index = col + delta.f.compute(x, i, 3)) < 0) {
+                     // same as above but going across columns/horizontally
+                     i += Math.abs(x) * -index;
                  } // if
-                 if (row + 1 < getRows() && col + 1 < getCols()) { // avoid AIOOBE for big positive indices
-                     o += equal(grid[row + delta.f.compute(y, i, 0)]
-                                    [col + delta.f.compute(x, i, 0)], // 0 away (lastDropped)
-                                grid[row + delta.f.compute(y, i, 3)]
-                                    [col + delta.f.compute(x, i, 3)], // 3 away
-                                grid[row + delta.f.compute(y, i, 1)]
-                                    [col + delta.f.compute(x, i, 1)], // 1 away
-                                grid[row + delta.f.compute(y, i, 2)]
-                                    [col + delta.f.compute(x, i, 2)]) // 2 away
-                            // the order is this way to short-circuit
-                            ? 1 : 0; // boolean -> int
+                 // below 2 ifs ADJUST indices one iteration AHEAD
+                 // avoid AIOOBE for big positive indices
+                 if ((index = row + delta.f.compute(y, i, 4)) >= maxI) {
+                     maxI -= Math.abs(y) * (index - maxI + 3);
                  } // if
+                 if ((index = col + delta.f.compute(x, i, 4)) >= maxI) {
+                     maxI -= Math.abs(x) * (index - maxI + 3);
+                 } // if
+                 // serendipitously, the above also implicitly adjusts for diagonals too,
+                 // since diagonals are slope=±1, i & maxI are the same for both row and col.
+                 // don't combine the ifs, though, because that's more computation per eval.
+                 numMatches += equal(grid[row + delta.f.compute(y, i, 0)]
+                                         [col + delta.f.compute(x, i, 0)], // lastDrop
+                                     grid[row + delta.f.compute(y, i, 3)]
+                                         [col + delta.f.compute(x, i, 3)], // 3 away
+                                     grid[row + delta.f.compute(y, i, 1)]
+                                         [col + delta.f.compute(x, i, 1)], // 1 away
+                                     grid[row + delta.f.compute(y, i, 2)]
+                                         [col + delta.f.compute(x, i, 2)]) // 2 away
+                                // the order is this way to short-circuit
+                                ? 1 : 0; // boolean -> int
              } // for
              return numMatches;
          }; // coordsToNumMatches.f
          // Directions in terms of (y, x): towards West: (0,1), South: (1,0), NW: (1,1), SW: (-1,1)
          // aw i just realized (y, x) still doesn't match cartesian (W should be negative)
          // short-circuiting :)
-         return (west ? coordsToNumMatches.f.applyAsInt(0, 1) : 0) // check ALONG row
-              + (north ? coordsToNumMatches.f.applyAsInt(1, 0) : 0) // check ALONG col
-              + (west && north ? coordsToNumMatches.f.applyAsInt(1, 1) : 0) // check diag (SE)
-              // check anti-diag (NE)
-              + (west && south ? coordsToNumMatches.f.applyAsInt(-1, 1) : 0) // fixed with k>0?i:-i
+         return coordsToNumMatches.f.applyAsInt(0, 1) // check ALONG row
+              + coordsToNumMatches.f.applyAsInt(1, 0) // check ALONG col
+              + coordsToNumMatches.f.applyAsInt(1, 1) // check diag (SE)
+              + coordsToNumMatches.f.applyAsInt(-1,1) // check anti-diag (NE)
               > 0; // int -> boolean
          // deprecated: replaced by the for loop, used to be an ugly array w/ index-pattern dowsing
      } // check
