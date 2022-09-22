@@ -418,6 +418,7 @@ public class ConnectFour {
              for (int i = -3, adjustment; i < maxI; i++) {
                  // avoiding ArrayIndexOutOfBounds for negative indices
                  // i==-3&& to short-circuit (bc happens only initially)
+                 // since check only initially, use row instead of row+delta
                  if (i == -3 && ((adjustment = row - 3) < 0
                               || (adjustment = col - 3) < 0)) {
                      // abs coef to ensure horiz & vert independent of each other
@@ -427,8 +428,8 @@ public class ConnectFour {
                  } // if
                  // below 2 ifs ADJUST indices one iteration AHEAD
                  // avoid AIOOBE for big positive indices
-                 if ((adjustment = row + 4) >= maxI
-                  || (adjustment = col + 4) >= maxI) {
+                 if ((adjustment = row + delta.f.compute(y, i, 4)) >= maxI
+                  || (adjustment = col + delta.f.compute(x, i, 4)) >= maxI) {
                      maxI -= Math.max(Math.abs(y) * (adjustment - maxI + 3),
                                       Math.abs(x) * (adjustment - maxI + 3));
                  } // if
