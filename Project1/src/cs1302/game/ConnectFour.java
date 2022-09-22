@@ -288,7 +288,8 @@ public class ConnectFour {
          } // if-else
          this.numDropped++;
          if (numDropped > 3 // short-circuit if less than 4 tokens on the grid
-             && isLastDropConnectFour()) { // this method is also boolean so yeah! ;P
+             && (isLastDropConnectFour()
+             || numDropped >= this.rows * this.cols)) {
                  this.phase = GamePhase.OVER;
          }
     } // dropToken
@@ -297,12 +298,6 @@ public class ConnectFour {
       * Return {@code true} if the last token dropped via {@link #dropToken} created a
       * <em>connect four</em>. A <em>connect four</em> is a sequence of four equal tokens (i.e., they
       * have the same color) -- this sequence can occur horizontally, vertically, or diagonally.
-      * If the grid is full or the last drop created a <em>connect four</em>, then this method
-      * changes the game's phase to {@link cs1302.gameutil.GamePhase#OVER}.
-      * A bit of a misnomer because it also checks if the grid is full.
-      *
-      * <p>
-      * <strong>NOTE:</strong> The only instance variable that this method can change is ``phase``.
       *
       * <p>
       * <strong>NOTE:</strong> Called after each* call to {@link #dropToken}.
@@ -316,9 +311,8 @@ public class ConnectFour {
          // EVERY POSSIBLE CONNECT FOUR AT THAT POINT, only connect-fours with an
          // endpoint at lastDrop location. *facepalm*
          int col = this.lastDropCol, row = this.lastDropRow; // golfing var names
-         if (check(row, col) // four-in-a-row
-             || numDropped >= this.rows * this.cols) { // or if grid full
-             this.phase = GamePhase.OVER; // end game
+         if (check(row, col)) {
+             return true;
          } // if
          this.phase = GamePhase.PLAYABLE;
          return false;
@@ -398,7 +392,6 @@ public class ConnectFour {
          // (xOrY)>0?i:-i handles checking Northward/negative direction (i.e., -i)
          // ^ for x, i will never be turned negative (see ternary)
          // e.g., if Math.abs(y)=0, checks only horizontally
-        
          coordsToNumMatches.f = (y, x) -> { // (y, x): compass directions turned into ordered pairs
              // y and x are used for moving down a file (vert., hori., diag., anti-diag.)
              // 2D arrays go down a row first, so x and y are switched.
