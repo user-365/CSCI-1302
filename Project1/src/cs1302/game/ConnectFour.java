@@ -416,6 +416,7 @@ public class ConnectFour {
              int numMatches = 0; // default: "no connect-fours"
              int maxI = 1; // default: tetromino-frame shifts (1-(-3)=)4 times
              for (int i = -3, adjustment; i < maxI; i++) {
+                 System.out.println("i:"+i+"\nmaxI:"+maxI);
                  // avoiding ArrayIndexOutOfBounds for negative indices
                  // i==-3&& to short-circuit (bc happens only initially)
                  // since check only initially, use row instead of row+delta
