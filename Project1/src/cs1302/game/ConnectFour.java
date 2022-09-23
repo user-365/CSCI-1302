@@ -331,7 +331,7 @@ public class ConnectFour {
             int compute (int xOrY, int i, int coef);
         } // IntTernaryOperator
         
-        H <IntBinaryOperator> coordsToNumMatches = new H<>();
+        H <IntBinaryOperator> coordsToIsMatch = new H<>();
         H <IntTernaryOperator> delta = new H<>();
         // "delta" means "change in (a variable)." Here, delta changes the row/col index
         delta.f = (xOrY, i, coef) -> Math.abs(xOrY) * ((xOrY > 0 ? i : -i) + (coef * xOrY));
@@ -340,7 +340,7 @@ public class ConnectFour {
         // ^ for x, i will never be turned negative (see ternary)
             // e.g., if Math.abs(y)=0, checks only horizontally
         int col = this.lastDropCol, int row = this.lastDropRow;
-        coordsToNumMatches.f = (y, x) -> { // (y, x): compass directions as ordered pairs
+        coordsToIsMatch.f = (y, x) -> { // (y, x): compass directions as ordered pairs
             // y and x are used for moving down a file (vert., hori., diag., anti-diag.)
             // 2D arrays go down a row first, so x and y are switched.
                 // i.e., y = vert/row, x = hor/col
@@ -383,14 +383,14 @@ public class ConnectFour {
                 }
             } // for
             return numMatches;
-        }; // coordsToNumMatches.f
+        }; // coordsToIsMatch.f
         // Directions in terms of (y, x): towards West: (0,1), South: (1,0), NW: (1,1), SW: (-1,1)
             // aw i just realized (y, x) still doesn't match cartesian (W should be negative)
         // short-circuiting :)
-        return coordsToNumMatches.f.applyAsInt(0, 1) // check ALONG row
-            || coordsToNumMatches.f.applyAsInt(1, 0) // check ALONG col
-            || coordsToNumMatches.f.applyAsInt(1, 1) // check diag (SE)
-            || coordsToNumMatches.f.applyAsInt(-1,1); // check anti-diag (NE)
+        return coordsToIsMatch.f.applyAsInt(0, 1) // check ALONG row
+            || coordsToIsMatch.f.applyAsInt(1, 0) // check ALONG col
+            || coordsToIsMatch.f.applyAsInt(1, 1) // check diag (SE)
+            || coordsToIsMatch.f.applyAsInt(-1,1);// check anti-diag (NE)
         // deprecated: replaced by the for loop, used to be a ||, && tree,
         // which used to be an ugly array w/ a frankenstein for-loop
         
