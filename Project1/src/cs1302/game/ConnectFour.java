@@ -300,6 +300,11 @@ public class ConnectFour {
      * have the same color) -- this sequence can occur horizontally, vertically, or diagonally.
      *
      * <p>
+     * Checks for a <em>connect four</em> on all vertical, horizontal, and diagonal
+     * directions. Via short-circuiting, it will only check in the directions where
+     * there can actually be a four-in-a-row, as opposed to running into the edge of the grid.
+     *
+     * <p>
      * <strong>NOTE:</strong> Called after each* call to {@link #dropToken}.
      *
      * @return {@code true} if the last token dropped created a <em>connect four</em>, else
@@ -310,12 +315,85 @@ public class ConnectFour {
         // when checking entire rows. also, previous method DID NOT CHECK FOR
         // EVERY POSSIBLE CONNECT FOUR AT THAT POINT, only connect-fours with an
         // endpoint at lastDrop location. *facepalm*
-        if (check(this.lastDropRow, this.lastDropCol)) {
-         return true;
-        } else {
-         return false;
-        }
-        // deprecated; replaced by check(), used to be a ||, && tree
+        
+        /**
+         * There IS a built-in IntBinaryOperator but no IntTernaryOperator.
+         * So i made this one. Accepts ("computes") three integers, and outputs
+         * another. Specifically, in the {@code H.delta} implementation,
+         * the three arguments are the y/x direction to angle the frame, a for-loop
+         * index variable, and the coefficient to check the cells some distance
+         * away from the base cell.
+         *
+         * @functionalinterface yeah this is a functional interface
+         */
+        @FunctionalInterface
+        interface IntTernaryOperator {
+            int compute (int xOrY, int i, int coef);
+        } // IntTernaryOperator
+        
+        H <IntBinaryOperator> coordsToNumMatches = new H<>();
+        H <IntTernaryOperator> delta = new H<>();
+        // "delta" means "change in (a variable)." Here, delta changes the row/col index
+        delta.f = (xOrY, i, coef) -> Math.abs(xOrY) * ((xOrY > 0 ? i : -i) + (coef * xOrY));
+        // param-arg name redundancy justified because it's a single-purpose function
+        // (xOrY)>0?i:-i handles checking Northward/negative direction (i.e., -i)
+        // ^ for x, i will never be turned negative (see ternary)
+            // e.g., if Math.abs(y)=0, checks only horizontally
+        int col = this.lastDropCol, int row = this.lastDropRow;
+        coordsToNumMatches.f = (y, x) -> { // (y, x): compass directions as ordered pairs
+            // y and x are used for moving down a file (vert., hori., diag., anti-diag.)
+            // 2D arrays go down a row first, so x and y are switched.
+                // i.e., y = vert/row, x = hor/col
+            boolean isMatch = false; // default: "no connect-fours"
+            int maxI = 1; // default: tetromino-frame shifts (1-(-3)=)4 times
+            for (int i = -3, adjustment; i < maxI; i++) {
+                // avoiding ArrayIndexOutOfBounds for negative indices
+                // i==-3&& to short-circuit (bc happens only initially)
+                // since check only initially, use row instead of row+delta
+                if (i == -3 && ((adjustment = row - 3) < 0
+                    || (adjustment = col - 3) < 0)) {
+                    // abs coef to ensure horiz & vert independent of each other
+                        // (e.g. if y = 0, i doesn't change in this if block)
+                    i += Math.max(Math.abs(y) * -adjustment,
+                    Math.abs(x) * -adjustment); // adjustment<0 so we negate it
+                } // if
+                // below 2 ifs ADJUST indices one iteration AHEAD
+                // avoid AIOOBE for big positive indices
+                if ((adjustment = row + delta.f.compute(y, i, 4)) >= maxI) {
+                    maxI -= Math.abs(y) * (adjustment - maxI + 3);
+                } // if
+                if ((adjustment = col + delta.f.compute(x, i, 4)) >= maxI) {
+                    maxI -= Math.abs(x) * (adjustment - maxI + 3);
+                } // if
+                // serendipitously, the above also implicitly adjusts for diagonals too,
+                // since diagonals are slope=±1, i & maxI are the same for both row and col.
+                // uses Math.max to get the needed adjustment for BOTH y and x.
+                try { // i give up
+                    isMatch |= equal(grid[row + delta.f.compute(y, i, 0)]
+                                         [col + delta.f.compute(x, i, 0)], // lastDrop
+                                     grid[row + delta.f.compute(y, i, 3)]
+                                         [col + delta.f.compute(x, i, 3)], // 3 away
+                                     grid[row + delta.f.compute(y, i, 1)]
+                                         [col + delta.f.compute(x, i, 1)], // 1 away
+                                     grid[row + delta.f.compute(y, i, 2)]
+                                         [col + delta.f.compute(x, i, 2)]);// 2 away
+                                         // the order is this way to short-circuit
+                } catch (ArrayIndexOutOfBoundsException aioobe) {
+                    ; // to escape detection by checkstyle
+                }
+            } // for
+            return numMatches;
+        }; // coordsToNumMatches.f
+        // Directions in terms of (y, x): towards West: (0,1), South: (1,0), NW: (1,1), SW: (-1,1)
+            // aw i just realized (y, x) still doesn't match cartesian (W should be negative)
+        // short-circuiting :)
+        return coordsToNumMatches.f.applyAsInt(0, 1) // check ALONG row
+            || coordsToNumMatches.f.applyAsInt(1, 0) // check ALONG col
+            || coordsToNumMatches.f.applyAsInt(1, 1) // check diag (SE)
+            || coordsToNumMatches.f.applyAsInt(-1,1); // check anti-diag (NE)
+        // deprecated: replaced by the for loop, used to be a ||, && tree,
+        // which used to be an ugly array w/ a frankenstein for-loop
+        
     } // isLastDropConnectFour
 
     //----------------------------------------------------------------------------------------------
@@ -362,102 +440,6 @@ public class ConnectFour {
         return z[0] == z[1]
             && (z.length < 3 ? true : equal(Arrays.copyOfRange(z, 1, z.length)));
     } // q
-
-    /**
-     * Checks for a <em>connect four</em> on all vertical, horizontal, and diagonal
-     * directions. Via short-circuiting, it will only check in the directions where
-     * there can actually be a four-in-a-row, as opposed to running into the edge of the grid.
-     *
-     * <p>
-     * It is a helper method which will ONLY be called in the
-     * {@link cs1302.game.ConnectFour.isLastDropConnectFour} method, which explains the
-     * specificity of the parameters.
-     *
-     * @param row an {@code int} representing (0-indexed) row of last Drop
-     * @param col an {@code int} representing (0-indexed) col of last Drop
-     * @return {@code true} if there is at least one <em>connect four</em>, and
-     *         {@code false} otherwise
-     */
-    boolean check (int row, int col) {
-        
-        /**
-         * There IS a built-in IntBinaryOperator but no IntTernaryOperator.
-         * So i made this one. Accepts ("computes") three integers, and outputs
-         * another. Specifically, in the {@code H.delta} implementation,
-         * the three arguments are the y/x direction to angle the frame, a for-loop
-         * index variable, and the coefficient to check the cells some distance
-         * away from the base cell.
-         *
-         * @functionalinterface yeah this is a functional interface
-         */
-        @FunctionalInterface
-        interface IntTernaryOperator {
-            int compute (int xOrY, int i, int coef);
-        } // IntTernaryOperator
-        
-        H <IntBinaryOperator> coordsToNumMatches = new H<>();
-        H <IntTernaryOperator> delta = new H<>();
-        // "delta" means "change in (a variable)." Here, delta changes the row/col index
-        delta.f = (xOrY, i, coef) -> Math.abs(xOrY) * ((xOrY > 0 ? i : -i) + (coef * xOrY));
-        // param-arg name redundancy justified because it's a single-purpose function
-        // (xOrY)>0?i:-i handles checking Northward/negative direction (i.e., -i)
-        // ^ for x, i will never be turned negative (see ternary)
-            // e.g., if Math.abs(y)=0, checks only horizontally
-        coordsToNumMatches.f = (y, x) -> { // (y, x): compass directions as ordered pairs
-            // y and x are used for moving down a file (vert., hori., diag., anti-diag.)
-            // 2D arrays go down a row first, so x and y are switched.
-                // i.e., y = vert/row, x = hor/col
-            int numMatches = 0; // default: "no connect-fours"
-            int maxI = 1; // default: tetromino-frame shifts (1-(-3)=)4 times
-            for (int i = -3, adjustment; i < maxI; i++) {
-                // avoiding ArrayIndexOutOfBounds for negative indices
-                // i==-3&& to short-circuit (bc happens only initially)
-                // since check only initially, use row instead of row+delta
-                if (i == -3 && ((adjustment = row - 3) < 0
-                    || (adjustment = col - 3) < 0)) {
-                    // abs coef to ensure horiz & vert independent of each other
-                        // (e.g. if y = 0, i doesn't change in this if block)
-                    i += Math.max(Math.abs(y) * -adjustment,
-                    Math.abs(x) * -adjustment); // adjustment<0 so we negate it
-                } // if
-                // below 2 ifs ADJUST indices one iteration AHEAD
-                // avoid AIOOBE for big positive indices
-                if ((adjustment = row + delta.f.compute(y, i, 4)) >= maxI) {
-                    maxI -= Math.abs(y) * (adjustment - maxI + 3);
-                } // if
-                if ((adjustment = col + delta.f.compute(x, i, 4)) >= maxI) {
-                    maxI -= Math.abs(x) * (adjustment - maxI + 3);
-                } // if
-                // serendipitously, the above also implicitly adjusts for diagonals too,
-                // since diagonals are slope=±1, i & maxI are the same for both row and col.
-                // uses Math.max to get the needed adjustment for BOTH y and x.
-                try { // i give up
-                    numMatches += equal(grid[row + delta.f.compute(y, i, 0)]
-                                            [col + delta.f.compute(x, i, 0)], // lastDrop
-                                        grid[row + delta.f.compute(y, i, 3)]
-                                            [col + delta.f.compute(x, i, 3)], // 3 away
-                                        grid[row + delta.f.compute(y, i, 1)]
-                                            [col + delta.f.compute(x, i, 1)], // 1 away
-                                        grid[row + delta.f.compute(y, i, 2)]
-                                            [col + delta.f.compute(x, i, 2)]) // 2 away
-                                            // the order is this way to short-circuit
-                                    ? 1 : 0; // boolean -> int
-                } catch (ArrayIndexOutOfBoundsException aioobe) {
-                    ; // to escape detection by checkstyle
-                }
-            } // for
-            return numMatches;
-        }; // coordsToNumMatches.f
-        // Directions in terms of (y, x): towards West: (0,1), South: (1,0), NW: (1,1), SW: (-1,1)
-            // aw i just realized (y, x) still doesn't match cartesian (W should be negative)
-        // short-circuiting :)
-        return coordsToNumMatches.f.applyAsInt(0, 1) // check ALONG row
-             + coordsToNumMatches.f.applyAsInt(1, 0) // check ALONG col
-             + coordsToNumMatches.f.applyAsInt(1, 1) // check diag (SE)
-             + coordsToNumMatches.f.applyAsInt(-1,1) // check anti-diag (NE)
-             > 0; // int -> boolean (arghh!!!)
-        // deprecated: replaced by the for loop, used to be an ugly array w/ a frankenstein for-loop
-    } // check
 
     //----------------------------------------------------------------------------------------------
     // DO NOT MODIFY THE METHODS BELOW!
