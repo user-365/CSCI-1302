@@ -381,6 +381,9 @@ public class ConnectFour {
                 } catch (ArrayIndexOutOfBoundsException aioobe) {
                     ; // to escape detection by checkstyle
                 }
+                if (isMatch) { // we don't wanna run the entire loop if we don't have to!
+                    return true;
+                } // if
             } // for
             return numMatches;
         }; // coordsToIsMatch.f
