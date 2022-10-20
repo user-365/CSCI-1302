@@ -1,8 +1,7 @@
-package cs1302.game;
+package cs1001.game;
 
 import java.lang.ArrayIndexOutOfBoundsException;
 import java.util.function.IntConsumer;
-import java.util.function.IntBinaryOperator;
 import java.util.Arrays;
 import cs1302.gameutil.GamePhase;
 import cs1302.gameutil.Token;
@@ -10,12 +9,12 @@ import cs1302.gameutil.TokenGrid;
 
 /**
  * {@code ConnectFour} represents a two-player connection game involving a two-dimensional grid of
- * {@linkplain cs1302.gameutil.Token tokens}. When a {@code ConnectFour} game object is
+ * {@linkplain cs1001.gameutil.Token tokens}. When a {@code ConnectFour} game object is
  * constructed, several instance variables representing the game's state are initialized and
  * subsequently accessible, either directly or indirectly, via "getter" methods. Over time, the
  * values assigned to these instance variables should change so that they always reflect the
  * latest information about the state of the game. Most of these changes are described in the
- * project's <a href="https://github.com/cs1302uga/cs1302-c4-alpha#functional-requirements">
+ * project's <a href="https://github.com/cs1001uga/cs1001-c4-alpha#functional-requirements">
  * functional requirements</a>.
  */
 public class ConnectFour {
@@ -40,10 +39,10 @@ public class ConnectFour {
     //----------------------------------------------------------------------------------------------
 
     /**
-     * Constructs a {@link cs1302.game.ConnectFour} game with a grid that has {@code rows}-many
+     * Constructs a {@link cs1001.game.ConnectFour} game with a grid that has {@code rows}-many
      * rows and {@code cols}-many columns. All of the game's instance variables are expected to
      * be initialized by this constructor as described in the project's
-     * <a href="https://github.com/cs1302uga/cs1302-c4-alpha#functional-requirements">functional
+     * <a href="https://github.com/cs1001uga/cs1001-c4-alpha#functional-requirements">functional
      * requirements</a>.
      *
      * @param rows the number of grid rows
@@ -104,7 +103,7 @@ public class ConnectFour {
     } // isInBounds
 
     /**
-     * Return the grid {@linkplain cs1302.gameutil.Token token} located at the
+     * Return the grid {@linkplain cs1001.gameutil.Token token} located at the
      * specified position
      * or {@code null} if no token has been dropped into that position.
      *
@@ -128,8 +127,8 @@ public class ConnectFour {
 
     /**
      * Set the first player token and second player token to {@code token0} and {@code token1},
-     * respectively. If the current game phase is {@link cs1302.gameutil.GamePhase#NEW}, then
-     * this method changes the game phase to {@link cs1302.gameutil.GamePhase#READY}, but only
+     * respectively. If the current game phase is {@link cs1001.gameutil.GamePhase#NEW}, then
+     * this method changes the game phase to {@link cs1001.gameutil.GamePhase#READY}, but only
      * if no exceptions are thrown.
      *.
      * @param token0 token for first player
@@ -137,7 +136,7 @@ public class ConnectFour {
      * @throws NullPointerException if {@code token0} or {@code token1} is {@code null}.
      * @throws IllegalArgumentException if {@code token0 == token1}.
      * @throws IllegalStateException if {@link #getPhase getPhase()} returns
-     *     {@link cs1302.gameutil.GamePhase#PLAYABLE} or {@link cs1302.gameutil.GamePhase#OVER}.
+     *     {@link cs1001.gameutil.GamePhase#PLAYABLE} or {@link cs1001.gameutil.GamePhase#OVER}.
      */
     public void setPlayerTokens(Token token0, Token token1) {
         if (token0 == null
@@ -165,7 +164,7 @@ public class ConnectFour {
      * @return the token for the specified player
      * @throws IllegalArgumentException if {@code player} is neither {@code 0} nor {@code 1}
      * @throws IllegalStateException if {@link #getPhase getPhase()} returns
-     *     {@link cs1302.gameutil.GamePhase#NEW}.
+     *     {@link cs1001.gameutil.GamePhase#NEW}.
      */
     public Token getPlayerToken(int player) {
         if (player != 0 && player != 1) {
@@ -184,7 +183,7 @@ public class ConnectFour {
      *
      * @return the number of dropped tokens
      * @throws IllegalStateException if {@link #getPhase getPhase()} returns
-     *     {@link cs1302.gameutil.GamePhase#NEW} or {@link cs1302.gameutil.GamePhase#READY}.
+     *     {@link cs1001.gameutil.GamePhase#NEW} or {@link cs1001.gameutil.GamePhase#READY}.
      */
     public int getNumDropped() {
         if (!isPlayed()) {
@@ -200,7 +199,7 @@ public class ConnectFour {
      *
      * @return the row index of the last drop
      * @throws IllegalStateException if {@link #getPhase getPhase()} returns
-     *     {@link cs1302.gameutil.GamePhase#NEW} or {@link cs1302.gameutil.GamePhase#READY}.
+     *     {@link cs1001.gameutil.GamePhase#NEW} or {@link cs1001.gameutil.GamePhase#READY}.
      */
     public int getLastDropRow() {
         if (!isPlayed()) {
@@ -216,7 +215,7 @@ public class ConnectFour {
      *
      * @return the column index of the last drop
      * @throws IllegalStateException if {@link #getPhase getPhase()} returns
-     *     {@link cs1302.gameutil.GamePhase#NEW} or {@link cs1302.gameutil.GamePhase#READY}.
+     *     {@link cs1001.gameutil.GamePhase#NEW} or {@link cs1001.gameutil.GamePhase#READY}.
      */
     public int getLastDropCol() {
         if (!isPlayed()) {
@@ -244,11 +243,11 @@ public class ConnectFour {
       * @throws IndexOutOfBoundsException if {@code col} is not a valid column index
       * @throws IllegalArgumentException if {@code player} is neither {@code 0} nor {@code 1}
       * @throws IllegalStateException if {@link #getPhase getPhase()} does not return
-      *    {@link cs1302.gameutil.GamePhase#READY} or {@link cs1302.gameutil.GamePhase#PLAYABLE}
+      *    {@link cs1001.gameutil.GamePhase#READY} or {@link cs1001.gameutil.GamePhase#PLAYABLE}
       * @throws IllegalStateException if the specified column in the grid is full
       */
      public void dropToken(int player, int insCol) {
-         if (!isInBounds(0, col)) { // check out-of-bounds
+         if (!isInBounds(0, insCol)) { // check out-of-bounds
              throw new IndexOutOfBoundsException(
                  "Out of bounds: Please enter a valid column index.");
          } // if
@@ -272,8 +271,8 @@ public class ConnectFour {
 
          H <IntConsumer> h = new H<>(); // int -> void
          h.f = j -> {
-             for (int i = startRow; 0 <= i && i <= r; i += j) {
-                 if (isInBounds(i,insCol) && grid[i][insCol] == null) {
+             for (int i = startRow; 0 <= i && i <= maxRow; i += j) {
+                 if (isInBounds(i, insCol) && grid[i][insCol] == null) {
                      grid[i][insCol] = this.getPlayerToken(player);
                      this.lastDropCol = insCol;
                      this.lastDropRow = i;
@@ -330,8 +329,21 @@ public class ConnectFour {
         interface IntTernaryOperator {
             int compute (int xOrY, int i, int coef);
         } // IntTernaryOperator
+
+        /**
+         * Again, there IS a built-in IntPredicate but no IntBiPredicate.
+         * So i made this one. Accepts ("applies") two integers, and outputs
+         * a boolean. Specifically, in the {@code H.coordsToIsMatch} implementation,
+         * the two arguments are the y and the x directions, respectively.
+         *
+         * @functionalinterface yeah this is a functional interface
+         */
+        @FunctionalInterface
+        interface IntBiPredicate {
+            boolean applyAsInt(int y, int x);
+        } // IntBiPredicate
         
-        H <IntBinaryOperator> coordsToIsMatch = new H<>();
+        H <IntBiPredicate> coordsToIsMatch = new H<>();
         H <IntTernaryOperator> delta = new H<>();
         // "delta" means "change in (a variable)." Here, delta changes the row/col index
         delta.f = (xOrY, i, coef) -> Math.abs(xOrY) * ((xOrY > 0 ? i : -i) + (coef * xOrY));
@@ -339,7 +351,7 @@ public class ConnectFour {
         // (xOrY)>0?i:-i handles checking Northward/negative direction (i.e., -i)
         // ^ for x, i will never be turned negative (see ternary)
             // e.g., if Math.abs(y)=0, checks only horizontally
-        int col = this.lastDropCol, int row = this.lastDropRow;
+        int col = this.lastDropCol, row = this.lastDropRow;
         coordsToIsMatch.f = (y, x) -> { // (y, x): compass directions as ordered pairs
             // y and x are used for moving down a file (vert., hori., diag., anti-diag.)
             // 2D arrays go down a row first, so x and y are switched.
@@ -385,7 +397,7 @@ public class ConnectFour {
                     return true;
                 } // if
             } // for
-            return numMatches;
+            return isMatch;
         }; // coordsToIsMatch.f
         // Directions in terms of (y, x): towards West: (0,1), South: (1,0), NW: (1,1), SW: (-1,1)
             // aw i just realized (y, x) still doesn't match cartesian (W should be negative)
@@ -421,8 +433,8 @@ public class ConnectFour {
      * PLAYABLE or OVER: Returns a boolean based on the current phase of the game.
      *
      * @return {@code true} if {@link #getPhase getPhase()} returns
-     *         {@link cs1302.gameutil.GamePhase#PLAYABLE} or
-     *         {@link cs1302.gameutil.GamePhase#OVER} and {@code false} otherwise
+     *         {@link cs1001.gameutil.GamePhase#PLAYABLE} or
+     *         {@link cs1001.gameutil.GamePhase#OVER} and {@code false} otherwise
      */
     boolean isPlayed() {
         return getPhase() == GamePhase.PLAYABLE || getPhase() == GamePhase.OVER;
@@ -462,11 +474,11 @@ public class ConnectFour {
 
     /**
      * <strong>DO NOT MODIFY:</strong>
-     * Construct a {@link cs1302.game.ConnectFour} game object from the description provided in the
+     * Construct a {@link cs1001.game.ConnectFour} game object from the description provided in the
      * the specified file. This method assumes the following about the contents of the file:
      *
      * 1) the first two entries in the file denote the {@code rows} and {@code cols} that should be
-     *    passed into the {@link cs1302.game.ConnectFour} constructor;
+     *    passed into the {@link cs1001.game.ConnectFour} constructor;
      * 2) the next two entries denote the token names for the first and second player;
      * 3) if present, the next {@code (rows * cols + 2)}-many entries specify the contents of the
      *    grid and the location of the last drop -- of these, the first {@code (rows * cols)}-many

@@ -1,10 +1,10 @@
-package cs1302.game;
+package cs1001.game;
 
 import java.util.Scanner;
 import cs1302.gameutil.Token;
 
 /**
- * A command-line program for {@link cs1302.game.ConnectFour}.
+ * A command-line program for {@link cs1001.game.ConnectFour}.
  *
  * <p>
  * <strong>NOTE:</strong> If you are implementing this class, then you should not manually
@@ -59,12 +59,12 @@ public class ConnectFourDriver {
     } // getInputLine
 
     /**
-     * Entry point to the {@link cs1302.game.ConnectFourDriver} program. This program supports
+     * Entry point to the {@link cs1001.game.ConnectFourDriver} program. This program supports
      * command-line arguments.
      *
      * <p>
      * For now, you should use this method to help you test your implementation of the
-     * {@link cs1302.game.ConnectFour} class. You may be asked to modify this method
+     * {@link cs1001.game.ConnectFour} class. You may be asked to modify this method
      * with something more specif at a later date. Some example test code is provided
      * in the project description.
      *

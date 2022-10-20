@@ -1,13 +1,13 @@
-package cs1302.game;
+package cs1001.game;
 
 import java.util.Scanner;
 import cs1302.gameutil.Token;
 import cs1302.gameutil.GamePhase;
 
 /**
- * A command-line program for testing {@link cs1302.game.ConnectFour}. Students
+ * A command-line program for testing {@link cs1001.game.ConnectFour}. Students
  * should refer to
- * the <a href="https://github.com/cs1302uga/cs1302-c4-alpha">project
+ * the <a href="https://github.com/cs1001uga/cs1001-c4-alpha">project
  * description</a> for more
  * details about what should be included in this class.
  */
@@ -33,7 +33,7 @@ public class ConnectFourTester {
     } // header
 
     /**
-     * Entry point to the {@link cs1302.game.ConnectFourTester} program. This
+     * Entry point to the {@link cs1001.game.ConnectFourTester} program. This
      * program is not
      * expected to support command-line arguments.
      *
@@ -338,7 +338,7 @@ public class ConnectFourTester {
 
     /**
      * Checks that the specified {@code game} is properly set to
-     * {@link cs1302.gameutil.GamePhase#OVER}. This method expects a game
+     * {@link cs1001.gameutil.GamePhase#OVER}. This method expects a game
      * that either contains a connect four or is full without a winner. If given
      * a proper game, it checks to make sure the phase is set properly and
      * that additional tokens cannot be dropped.
@@ -411,7 +411,7 @@ public class ConnectFourTester {
      * {@code getNumDropped}. The method sets the player tokens of the {@code game}
      * to
      * red and blue. This test fails if the provided {@code game} is not in
-     * the {@link cs1302.gameutil.GamePhase#NEW} phase.
+     * the {@link cs1001.gameutil.GamePhase#NEW} phase.
      *
      * @param game the Connect Four game to test.
      * @return {@code true} if the tests pass and {@code false} otherwise.
@@ -525,7 +525,7 @@ public class ConnectFourTester {
      * tests {@code gamePhase}, {@code getLastDropRow}, {@code getLastDropCol},
      * and {@code getNumDropped}. This test fails if the provided {@code game} is
      * not in
-     * the {@link cs1302.gameutil.GamePhase#PLAYABLE} phase.
+     * the {@link cs1001.gameutil.GamePhase#PLAYABLE} phase.
      *
      * @param game the Connect Four game to test.
      * @return {@code true} if the tests pass and {@code false} otherwise.

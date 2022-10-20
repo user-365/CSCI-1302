@@ -1,10 +1,10 @@
-package cs1302.game;
+package cs1001.game;
 
 import java.util.Scanner;
 import java.io.FileNotFoundException;
 import java.io.File;
 
-import cs1302.game.ConnectFour;
+import cs1001.game.ConnectFour;
 import cs1302.gameutil.GamePhase;
 import cs1302.gameutil.Token;
 
@@ -16,7 +16,7 @@ public class ConnectFourCLI {
     private static final Scanner STD_IN = new Scanner(System.in);
 
     /**
-     * Entry point to the {@link cs1302.game.ConnectFourDriver} program.
+     * Entry point to the {@link cs1001.game.ConnectFourDriver} program.
      * @param args the command-line arguments (not used)
      */
     public static void main(String[] args) {
