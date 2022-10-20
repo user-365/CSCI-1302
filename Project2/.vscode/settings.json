@@ -1,0 +1,7 @@
+{
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar",
+        "phase1.jar"
+    ],
+    "java.dependency.syncWithFolderExplorer": true
+}
