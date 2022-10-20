@@ -1,7 +1,9 @@
 package cs1302.game;
 
-import java.util.Arrays;
+import java.lang.ArrayIndexOutOfBoundsException;
 import java.util.function.IntConsumer;
+import java.util.function.IntBinaryOperator;
+import java.util.Arrays;
 import cs1302.gameutil.GamePhase;
 import cs1302.gameutil.Token;
 import cs1302.gameutil.TokenGrid;
@@ -54,9 +56,8 @@ public class ConnectFour {
         if (6 > rows || rows > 9
             || 7 > cols || cols > 9) {  // De Morgan's Laws
             throw new IllegalArgumentException(
-                "Unsupported Values: please make sure that 6 ≤ rows ≤ 9 and 7 ≤ cols ≤ 9."
-            );
-        }
+                "Unsupported Values: please make sure that 6 ≤ rows ≤ 9 and 7 ≤ cols ≤ 9.");
+        } // if
         this.rows = rows;
         this.cols = cols;
         this.grid = new Token[rows][cols];
@@ -65,7 +66,6 @@ public class ConnectFour {
         this.lastDropRow = -1;
         this.lastDropCol = -1;
         this.phase = GamePhase.NEW;
-        //throw new UnsupportedOperationException("constructor: not yet implemented.");
     } // ConnectFour
 
     //----------------------------------------------------------------------------------------------
@@ -121,9 +121,9 @@ public class ConnectFour {
         if (!isInBounds(row, col)) {
             throw new IndexOutOfBoundsException(
                 "Out of bounds: Please make sure that 1 ≤ row ≤ %d and 1 ≤ col ≤ %d."
-                .formatted(rows, cols));
-        } 
-        return this.grid[row][col] != null ? this.grid[row][col] : null;
+                .formatted(rows, cols)); // screw you, you gaslighting, outdated compiler!
+        } // if
+        return this.grid[row][col]; // != null ? this.grid[row][col] : null;???
     } // getTokenAt
 
     /**
@@ -144,15 +144,15 @@ public class ConnectFour {
             || token1 == null) {
             throw new NullPointerException(
                 "Null argument(s): Neither argument can be null.");
-        }
-        if (isPlayed(this)) {
+        } // if
+        if (isPlayed()) {
             throw new IllegalStateException(
                 "Wrong phase: Tokens can only be assigned upon creation of a new game.");
-        }
+        } // if
         if (token0 == token1) {
             throw new IllegalArgumentException(
                 "Bad arguments: Both players can't be assigned the same token.");
-        }
+        } // if
         this.player[0] = token0;
         this.player[1] = token1;
         this.phase = GamePhase.READY;
@@ -171,11 +171,11 @@ public class ConnectFour {
         if (player != 0 && player != 1) {
             throw new IllegalArgumentException(
                 "Bad Argument: Argument must either be 0 or 1.");
-        }
+        } // if
         if (this.phase == GamePhase.NEW) {
             throw new IllegalStateException(
                 "Wrong phase: You can only get tokens after they have been assigned.");
-        }
+        } // if
         return this.player[player];
     } // getPlayerToken
 
@@ -187,10 +187,10 @@ public class ConnectFour {
      *     {@link cs1302.gameutil.GamePhase#NEW} or {@link cs1302.gameutil.GamePhase#READY}.
      */
     public int getNumDropped() {
-        if (!isPlayed(this)) {
+        if (!isPlayed()) {
             throw new IllegalStateException(
                 "Wrong phase: The game just started; no tokens are on the board yet.");
-        }
+        } // if
         return this.numDropped;
     } // getNumDropped
 
@@ -203,10 +203,10 @@ public class ConnectFour {
      *     {@link cs1302.gameutil.GamePhase#NEW} or {@link cs1302.gameutil.GamePhase#READY}.
      */
     public int getLastDropRow() {
-        if (!isPlayed(this)) {
+        if (!isPlayed()) {
             throw new IllegalStateException(
                 "Wrong phase: The game just started; no tokens are on the board yet.");
-        }
+        } // if
         return this.lastDropRow;
     } // getLastDropRow
 
@@ -219,7 +219,7 @@ public class ConnectFour {
      *     {@link cs1302.gameutil.GamePhase#NEW} or {@link cs1302.gameutil.GamePhase#READY}.
      */
     public int getLastDropCol() {
-        if (!isPlayed(this)) {
+        if (!isPlayed()) {
             throw new IllegalStateException(
                 "Wrong phase: The game just started; no tokens are on the board yet.");
         }
@@ -236,133 +236,167 @@ public class ConnectFour {
     } // getPhase
 
     /**
-     * Drop a player's token into a specific column in the grid. This method should not enforce turn
-     * order -- that is the players' responsibility should they desire an polite and honest game.
-     *
-     * @param player the player ({@code 0} for first player and {@code 1} for second player)
-     * @param col the grid column where the token will be dropped
-     * @throws IndexOutOfBoundsException if {@code col} is not a valid column index
-     * @throws IllegalArgumentException if {@code player} is neither {@code 0} nor {@code 1}
-     * @throws IllegalStateException if {@link #getPhase getPhase()} does not return
-     *    {@link cs1302.gameutil.GamePhase#READY} or {@link cs1302.gameutil.GamePhase#PLAYABLE}
-     * @throws IllegalStateException if the specified column in the grid is full
-     */
-    public void dropToken(int player, int col) {
-        
-        // check out-of-bounds
-        if (!isInBounds(0, col)) {
-            throw new IndexOutOfBoundsException(
-                "Out of bounds: Please enter a valid column index.");
-        }
-        // check player = 0 or 1
-        this.getPlayerToken(player); // does this work??? lol
-        // check phase (^GamePhase.NEW checked with getPlayerToken)
-        if (this.phase == GamePhase.OVER) {
-            throw new IllegalStateException(
-                "Wrong phase: Game isn't ready or isn't being played.");
-        }
-        // start the game!
-        this.phase = GamePhase.PLAYABLE;
-        // 0-indexing
-        int c = col, r = this.rows - 1;
-        // shortcut: if same column as last token
-        if (c == this.lastDropCol) {
-            // check full column
-            if (this.lastDropRow <= 0) {
-                throw new IllegalStateException(
-                    "Illegal Argument: Sorry, column full!");
-            }
-            grid[this.lastDropRow - 1][c] = this.getPlayerToken(player);
-        } 
-        // estimate where last token is, then find next empty (null) cell
-        // estimate of avg unfilled 0-row
-        int startRow = r - (int) Math.round(numDropped / this.cols);
-        
-        /**
-         * H is short for "Helper". Single-purpose class to house a method which
-         * will save a few lines of code. Did this as proof of concept.
-         * 
-         * @param <I> - Functional Interface Type
-         */
-        class H <I> { I f; }
-        H<IntConsumer> h = new H<>();
-        h.f = j -> {
-            for (int i = startRow; 0 <= i && i <= r; i += j) {
-                if (isInBounds(i,c) && grid[i][c] == null) {
-                    grid[i][c] = ConnectFour.this.getPlayerToken(player);
-                    ConnectFour.this.lastDropCol = c;
-                    ConnectFour.this.lastDropRow = i;
-                    break;
-                } // if
-            } // for
-        }; // a.f
-        if (grid[startRow][c] == null) { // if null, then go down
-            h.f.accept(1);
-        } else { // if filled, go up
-            h.f.accept(-1);
-        } // if-else
-        // one more token dropped!
-        this.numDropped++;
-        // check win (after fourth move)
-        if (numDropped > 3
-            && isLastDropConnectFour()
-            || numDropped > this.rows * this.cols) {
-            this.phase = GamePhase.OVER;
-        }
+      * Drop a player's token into a specific column in the grid. This method should not enforce turn
+      * order -- that is the players' responsibility should they desire an polite and honest game.
+      *
+      * @param player the player ({@code 0} for first player and {@code 1} for second player)
+      * @param insCol the grid column where the token is dropped/inserted
+      * @throws IndexOutOfBoundsException if {@code col} is not a valid column index
+      * @throws IllegalArgumentException if {@code player} is neither {@code 0} nor {@code 1}
+      * @throws IllegalStateException if {@link #getPhase getPhase()} does not return
+      *    {@link cs1302.gameutil.GamePhase#READY} or {@link cs1302.gameutil.GamePhase#PLAYABLE}
+      * @throws IllegalStateException if the specified column in the grid is full
+      */
+     public void dropToken(int player, int insCol) {
+         if (!isInBounds(0, col)) { // check out-of-bounds
+             throw new IndexOutOfBoundsException(
+                 "Out of bounds: Please enter a valid column index.");
+         } // if
+         this.getPlayerToken(player); // check player = 0 or 1, intentionally unassigned
+         if (this.phase == GamePhase.OVER) { // check phase (^NEW checked w/ getPlayerToken)
+             throw new IllegalStateException(
+                 "Wrong phase: Game isn't ready or isn't being played.");
+         } // if
+         this.phase = GamePhase.PLAYABLE; // start the game!
+         int maxRow = this.rows - 1; // renaming vars
+         // shortcut: if same column as last token...
+         if (insCol == this.lastDropCol) {
+             if (this.lastDropRow <= 0) { // check full column
+                 throw new IllegalStateException(
+                     "Illegal Argument: Sorry, column full!");
+             } // if
+             grid[this.lastDropRow - 1][insCol] = this.getPlayerToken(player); // go up one row
+         } // if
+         // estimate where last token is, then find next empty (null) cell
+         int startRow = maxRow - (int) Math.round(numDropped / this.cols); // estim. avg unfilled row
+
+         H <IntConsumer> h = new H<>(); // int -> void
+         h.f = j -> {
+             for (int i = startRow; 0 <= i && i <= r; i += j) {
+                 if (isInBounds(i,insCol) && grid[i][insCol] == null) {
+                     grid[i][insCol] = this.getPlayerToken(player);
+                     this.lastDropCol = insCol;
+                     this.lastDropRow = i;
+                     break; // leave asap
+                 } // if
+             } // for
+         }; // h.f
+         if (grid[startRow][insCol] == null) { // if null (empty)...
+             h.f.accept(1); // then go down
+         } else { // if filled...
+             h.f.accept(-1); // go up
+         } // if-else
+         this.numDropped++;
+         if (numDropped > 3 // short-circuit if less than 4 tokens on the grid
+             && (isLastDropConnectFour()
+                || numDropped >= this.rows * this.cols)) {
+                 this.phase = GamePhase.OVER;
+         }
     } // dropToken
 
     /**
      * Return {@code true} if the last token dropped via {@link #dropToken} created a
      * <em>connect four</em>. A <em>connect four</em> is a sequence of four equal tokens (i.e., they
      * have the same color) -- this sequence can occur horizontally, vertically, or diagonally.
-     * If the grid is full or the last drop created a <em>connect four</em>, then this method
-     * changes the game's phase to {@link cs1302.gameutil.GamePhase#OVER}.
      *
      * <p>
-     * <strong>NOTE:</strong> The only instance variable that this method might change, if
-     * applicable, is ``phase``.
+     * Checks for a <em>connect four</em> on all vertical, horizontal, and diagonal
+     * directions. Via short-circuiting, it will only check in the directions where
+     * there can actually be a four-in-a-row, as opposed to running into the edge of the grid.
      *
      * <p>
-     * <strong>NOTE:</strong> If you want to use this method to determine a winner, then you must
-     * call it after each call to {@link #dropToken}.
+     * <strong>NOTE:</strong> Called after each* call to {@link #dropToken}.
      *
      * @return {@code true} if the last token dropped created a <em>connect four</em>, else
      *     {@code false}
      */
     public boolean isLastDropConnectFour() {
-        int c = this.lastDropCol, r = this.lastDropRow;
-        Token lastToken = getTokenAt(r, c); // last token played
-        boolean e, w, s, n;
-
-        // Proximity to bounds
-        // East
-        e = this.cols - c > 3;
-        // West
-        w = c >= 3;
-        // South
-        s = this.rows - r > 3;
-        // North
-        n = r >= 3;
+        // deprecated: made 4 proximity-to-bounds booleans, which doesn't apply
+        // when checking entire rows. also, previous method DID NOT CHECK FOR
+        // EVERY POSSIBLE CONNECT FOUR AT THAT POINT, only connect-fours with an
+        // endpoint at lastDrop location. *facepalm*
         
-        // used to be a nested-if tree,
-        // pardon the heavy-duty short-circuiting.
-        return false // default: not a connect-four
-                // -east
-                || e && (q(lastToken, grid[r][c + 3], grid[r][c + 1], grid[r][c + 2])
-                    // southeast
-                    || s && q(lastToken, grid[r + 3][c + 3], grid[r + 1][c + 1], grid[r + 2][c + 2])
-                    // northeast
-                    || n && q(lastToken, grid[r - 3][c + 3], grid[r - 1][c + 1], grid[r - 2][c + 2]))
-                // -west
-                || w && (q(lastToken, grid[r][c - 3], grid[r][c - 1], grid[r][c - 2])
-                    // southwest
-                    || s && q(lastToken, grid[r + 3][c - 3], grid[r + 1][c - 1], grid[r + 2][c - 2])
-                    // northwest
-                    || n && q(lastToken, grid[r - 3][c - 3], grid[r - 1][c - 1], grid[r - 2][c - 2]))
-                // south only
-                || s && q(lastToken, grid[r + 3][c], grid[r + 1][c], grid[r + 2][c]);
-        // return
-        // secret regex mode?????
+        /**
+         * There IS a built-in IntBinaryOperator but no IntTernaryOperator.
+         * So i made this one. Accepts ("computes") three integers, and outputs
+         * another. Specifically, in the {@code H.delta} implementation,
+         * the three arguments are the y/x direction to angle the frame, a for-loop
+         * index variable, and the coefficient to check the cells some distance
+         * away from the base cell.
+         *
+         * @functionalinterface yeah this is a functional interface
+         */
+        @FunctionalInterface
+        interface IntTernaryOperator {
+            int compute (int xOrY, int i, int coef);
+        } // IntTernaryOperator
+        
+        H <IntBinaryOperator> coordsToIsMatch = new H<>();
+        H <IntTernaryOperator> delta = new H<>();
+        // "delta" means "change in (a variable)." Here, delta changes the row/col index
+        delta.f = (xOrY, i, coef) -> Math.abs(xOrY) * ((xOrY > 0 ? i : -i) + (coef * xOrY));
+        // param-arg name redundancy justified because it's a single-purpose function
+        // (xOrY)>0?i:-i handles checking Northward/negative direction (i.e., -i)
+        // ^ for x, i will never be turned negative (see ternary)
+            // e.g., if Math.abs(y)=0, checks only horizontally
+        int col = this.lastDropCol, int row = this.lastDropRow;
+        coordsToIsMatch.f = (y, x) -> { // (y, x): compass directions as ordered pairs
+            // y and x are used for moving down a file (vert., hori., diag., anti-diag.)
+            // 2D arrays go down a row first, so x and y are switched.
+                // i.e., y = vert/row, x = hor/col
+            boolean isMatch = false; // default: "no connect-fours"
+            int maxI = 1; // default: tetromino-frame shifts (1-(-3)=)4 times
+            for (int i = -3, adjustment; i < maxI; i++) {
+                // avoiding ArrayIndexOutOfBounds for negative indices
+                // i==-3&& to short-circuit (bc happens only initially)
+                // since check only initially, use row instead of row+delta
+                if (i == -3 && ((adjustment = row - 3) < 0
+                    || (adjustment = col - 3) < 0)) {
+                    // abs coef to ensure horiz & vert independent of each other
+                        // (e.g. if y = 0, i doesn't change in this if block)
+                    i += Math.max(Math.abs(y) * -adjustment,
+                    Math.abs(x) * -adjustment); // adjustment<0 so we negate it
+                } // if
+                // below 2 ifs ADJUST indices one iteration AHEAD
+                // avoid AIOOBE for big positive indices
+                if ((adjustment = row + delta.f.compute(y, i, 4)) >= maxI) {
+                    maxI -= Math.abs(y) * (adjustment - maxI + 3);
+                } // if
+                if ((adjustment = col + delta.f.compute(x, i, 4)) >= maxI) {
+                    maxI -= Math.abs(x) * (adjustment - maxI + 3);
+                } // if
+                // serendipitously, the above also implicitly adjusts for diagonals too,
+                // since diagonals are slope=±1, i & maxI are the same for both row and col.
+                // uses Math.max to get the needed adjustment for BOTH y and x.
+                try { // i give up
+                    isMatch |= equal(grid[row + delta.f.compute(y, i, 0)]
+                                         [col + delta.f.compute(x, i, 0)], // lastDrop
+                                     grid[row + delta.f.compute(y, i, 3)]
+                                         [col + delta.f.compute(x, i, 3)], // 3 away
+                                     grid[row + delta.f.compute(y, i, 1)]
+                                         [col + delta.f.compute(x, i, 1)], // 1 away
+                                     grid[row + delta.f.compute(y, i, 2)]
+                                         [col + delta.f.compute(x, i, 2)]);// 2 away
+                                         // the order is this way to short-circuit
+                } catch (ArrayIndexOutOfBoundsException aioobe) {
+                    ; // to escape detection by checkstyle
+                }
+                if (isMatch) { // we don't wanna run the entire loop if we don't have to!
+                    return true;
+                } // if
+            } // for
+            return numMatches;
+        }; // coordsToIsMatch.f
+        // Directions in terms of (y, x): towards West: (0,1), South: (1,0), NW: (1,1), SW: (-1,1)
+            // aw i just realized (y, x) still doesn't match cartesian (W should be negative)
+        // short-circuiting :)
+        return coordsToIsMatch.f.applyAsInt(0, 1) // check ALONG row
+            || coordsToIsMatch.f.applyAsInt(1, 0) // check ALONG col
+            || coordsToIsMatch.f.applyAsInt(1, 1) // check diag (SE)
+            || coordsToIsMatch.f.applyAsInt(-1,1);// check anti-diag (NE)
+        // deprecated: replaced by the for loop, used to be a ||, && tree,
+        // which used to be an ugly array w/ a frankenstein for-loop
+        
     } // isLastDropConnectFour
 
     //----------------------------------------------------------------------------------------------
@@ -371,67 +405,44 @@ public class ConnectFour {
     //----------------------------------------------------------------------------------------------
 
     /**
+     * H, short for "Helper", is a single-purpose Class to house a method {@code f} which
+     * will save me a few lines of code, wherever it is used. Did this as proof of concept.
+     * Justification: i need specific helper methods to condense functionality in bigger
+     * methods. Defining those helper methods locally increases readability, but Java doesn't
+     * allow me to define a method within a method. So i did a parameterized functional interface.
+     *
+     * @param <I> - Functional Interface Type
+     */
+    class H <I> {
+        I f;
+    } // H
+
+    /**
      * PLAYABLE or OVER: Returns a boolean based on the current phase of the game.
-     * 
-     * @param c an object of type {@code ConnectFour} representing a game.
+     *
      * @return {@code true} if {@link #getPhase getPhase()} returns
      *         {@link cs1302.gameutil.GamePhase#PLAYABLE} or
      *         {@link cs1302.gameutil.GamePhase#OVER} and {@code false} otherwise
      */
-    static boolean isPlayed(ConnectFour c) {
-        return Arrays.asList( GamePhase.PLAYABLE, GamePhase.OVER ).contains( c.getPhase() );
+    boolean isPlayed() {
+        return getPhase() == GamePhase.PLAYABLE || getPhase() == GamePhase.OVER;
     } // isPlayed
 
     /**
-     * Checks whether two {@code Token} enums are equal.
-     * Inspired by <a href="https://stackoverflow.com/a/8198279">this answer
-     * on Stack Exchange</a>.
-     * 
-     * @param x   an enum of type {@code Token}
-     * @param y   another enum of type {@code Token}
-     * @return {@code true} if they are ALL equal, {@code false} otherwise
-     */
-    //static boolean q (Token x, Token y) { return x == y; }
-
-    /**
      * Token Equality: Checks whether all the elements of an array of {@code Token} enums are
-     * equal, recursively.
+     * equal, through recursion.
+     * Compares the first {@code Token} with the second, then second with
+     * the third, and so on.
      * Inspired by <a href="https://stackoverflow.com/a/8198279">this answer
      * on Stack Exchange</a>.
      * 
      * @param z   a varargs of type {@code Token}
      * @return {@code true} if they are ALL equal, {@code false} otherwise
      */
-    static boolean q (Token...z) {
+    static boolean equal (Token...z) {
         return z[0] == z[1]
-                && (z.length < 3 ? true : q(Arrays.copyOfRange(z, 1, z.length)));
-    }
-
-    /**
-     * Direction Check: Checks for a <em>connect four</em> on either a
-     * vertical, horizontal, or diagonal direction, each being represented by
-     * one of four cardinal compass directions (N, S, E, W) and the four
-     * inter-cardinal directions (NE, NW, SE, SW).
-     * 
-     * @param c a {@code char[]} of either length one or two, which is intended
-     *          to contain the abbreviation of a/an (inter)cardinal direction in
-     *          any order, capitalized
-     * @return {@code true} if there is at least one <em>connect four</em>, and
-     *         {@code false} otherwise
-     * @throws java.lang.IllegalArgumentException if the argument does not
-     * concatenate and permute to a/an (inter)cardinal direction, or if its
-     * length is greater than 2
-     */
-    static boolean directionCheck (char...c) {
-        if (String.valueOf(c).matches("[^EW][^NS]|...+")) {
-            throw new IllegalArgumentException(
-                "Illegal Argument: Please enter one of eight compass directions."
-            );
-        }
-        boolean b = false;
-        //
-        return b;
-    }
+            && (z.length < 3 ? true : equal(Arrays.copyOfRange(z, 1, z.length)));
+    } // q
 
     //----------------------------------------------------------------------------------------------
     // DO NOT MODIFY THE METHODS BELOW!
