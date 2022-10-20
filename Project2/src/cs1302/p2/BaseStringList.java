@@ -4,7 +4,7 @@ import cs1302.adt.StringList;
 
 /**
  * BaseStringList is the abstract base class for the two different
- * implementations of a {@code StringList}: {@code ArrayStringList}
+ * implementations of a {@code BaseStringList}: {@code ArrayStringList}
  * and {@code LinkedStringList}.
  */
 public abstract class BaseStringList implements StringList {
@@ -20,7 +20,7 @@ public abstract class BaseStringList implements StringList {
     } // Constructor
 
     /**
-     * Add new item to end of {@code StringList}.
+     * Adds new item to end of {@code BaseStringList}.
      * 
      * <p>
      * {@inheritDoc}
@@ -31,7 +31,7 @@ public abstract class BaseStringList implements StringList {
     } // append
 
     /**
-     * Checks if {@code StringList} is empty.
+     * Checks whether {@code BaseStringList} is empty.
      * 
      * <p>
      * {@inheritDoc}
@@ -42,7 +42,8 @@ public abstract class BaseStringList implements StringList {
     } // isEmpty
 
     /**
-     * Formats a {@code String} with the {@code StringList}'s items.
+     * Encodes the {@code BaseStringList}'s items
+     * into a human-readable {@code String}.
      * 
      * <p>
      * {@inheritDoc}
@@ -55,13 +56,13 @@ public abstract class BaseStringList implements StringList {
                 sb.append(get(i));
                 break;
             } // if
-            sb.append(get(i)).append(sep); // TK
+            sb.append(get(i)).append(sep);
         } // for
         return sb.append(end).toString();
     } // makeString
 
     /**
-     * Add new item to beginning of {@code StringList}.
+     * Adds new item to beginning of {@code BaseStringList}.
      * 
      * <p>
      * {@inheritDoc}
@@ -72,7 +73,7 @@ public abstract class BaseStringList implements StringList {
     } // prepend
 
     /**
-     * Returns the size of the {@code StringList}
+     * Returns the size of the {@code BaseStringList}.
      * 
      * <p>
      * {@inheritDoc}
@@ -95,28 +96,35 @@ public abstract class BaseStringList implements StringList {
     } // toString
 
     /**
-     * Helper method. Throws an exception if out of bounds.
-     * Since a {@code StringList} is gapless, also guarantees that all preceding
-     * items exist.
+     * Helper method. Throws an exception if "out of bounds".
+     * Here, "out of bounds," in terms of an array index,
+     * means {@code (index < 0 || index >= size)},
+     * or {@code (index < 0 || index > size)}.
+     * Assuming all {@code BaseStringList}s are gapless, also guarantees
+     * that all preceding items exist.
      * 
+     * <p>
      * Prefer: set {@code checkEnd} to {@code true}.
-     * Only case set to {@code false} is in {@code intercept(int, String)}
-     * (i.e., only {@code false} when called in {@code add()})
-     * ((i.e., only {@code false} inside {@code BaseStringList})).
+     * The <em>only</em> case where {@code false} is passed in
+     * is when it's called in {@code intercept(int, String)}
+     * (i.e., <em>only</em> {@code false} when called in {@code add()})
+     * ((i.e., <em>only</em> {@code false} inside {@code BaseStringList})).
+     * 
+     * <p>
+     * One of two overloaded {@code intercept()}s. Used by the other.
      * 
      * @param index    the index to be checked
      * @param checkEnd whether to check {@code index == size} or not;
      *                 true if want to check end, false otherwise
      * @throws IndexOutOfBoundsException if index is out of bounds
-     * @see intercept(int index, String item) intercept(int, String)
+     * @see #intercept(int, String)
      */
     protected void intercept(int index, boolean checkEnd) {
         // leaves index==size corner case on behalf of add()#append
         // if not appending, throw if (index==size) as well
-        if (index < 0
-            || checkEnd
-                ? index >= size
-                : index > size) { // TK
+        if (index < 0 || checkEnd
+                            ? index >= size
+                            : index > size) {
             throw new IndexOutOfBoundsException("Index cannot be out of " +
             "bounds!");
         } // if
@@ -131,15 +139,19 @@ public abstract class BaseStringList implements StringList {
      * <ul>
      * <li>item is {@code null},</li>
      * <li>item (as a {@code String}) is empty, or</li>
-     * <li>index is out of bounds</li>
+     * <li>index is out of bounds.</li>
      * </ul>
+     * 
+     * <p>
+     * One of two overloaded {@code intercept()}s.
+     * Uses the other, with arguments {@code (index, true)}.
      * 
      * @param index the index to be checked
      * @param item  the item to be checked
      * @throws NullPointerException     If item is {@code null}
      * @throws IllegalArgumentException If item (as a {@code String}) is
      *                                  empty
-     * @see (int index, boolean checkEnd) intercept(int, boolean)
+     * @see #intercept(int, boolean)
      */
     protected void intercept(int index, String item) {
         if (item == null) { // null

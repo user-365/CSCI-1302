@@ -36,7 +36,7 @@ public class LinkedStringList extends BaseStringList {
         Node temp = this.head = head;
         this.size = 1; // head guaranteed to have item due to Node constructor
         // Node isn't Iterable :(
-        while (temp.hasNext()) { // while more readable than for
+        while (temp.hasNext()) { // while more readable than for-loop
             temp = temp.getNext(); // doesn't modify since it's COPYING to temp
             this.size++;
         } // while
@@ -47,7 +47,7 @@ public class LinkedStringList extends BaseStringList {
      * in the {@code LinkedStringList}'s {@code Node}-chain.
      * 
      * Re-links to and from a new {@code Node} (using a temp {@code Node}
-     * called {@code newNode), integrating it into the instance's
+     * called {@code newNode}), integrating it into the instance's
      * {@code Node} chain at the specified index.
      * 
      * <p>
@@ -65,18 +65,18 @@ public class LinkedStringList extends BaseStringList {
             if (index == size) { // append
                 Node before = getAt(index - 1); // at index before
                 before.setNext(new Node(item));
-                // fall through to return statement
+                // fall through to size increment
             } else if (index == 0) { // prepend
-                Node newNode = new Node(item, head); // TK?
+                Node newNode = new Node(item, head);
                 head = newNode;
-                // fall through to return statement
+                // fall through to size increment
             } else {
                 // insert (neither prepend nor append)
                 Node before = getAt(index - 1); // at index before
                 Node after = getAt(index); // previously at index
                 Node newNode = new Node(item, after); // link newNode to After
                 before.setNext(newNode); // link Before to newNode
-                // fall through to return statement
+                // fall through to size increment
             } // if-elif-else
             size++;
             return true;
@@ -138,11 +138,11 @@ public class LinkedStringList extends BaseStringList {
             Node delenda = getAt(index);
             if (delenda.hasNext()) { // does it have "next"?
                 before.setNext(delenda.getNext()); // link Before to After
-                // fall through to return statement
+                // fall through to size decrement
             } else {
                 // if last in chain
                 before.setNext(null);
-                // fall through to return statement
+                // fall through to size decrement
             } // if-else
             size--;
             return delenda.getItem();
@@ -178,10 +178,10 @@ public class LinkedStringList extends BaseStringList {
                 Node newTemp = new Node(temp.getItem()); // copy to new's head
                 LinkedStringList subset = new LinkedStringList(newTemp);
                 // ^overloaded constructor because can't access head (private)
-                for (int i = start; i < stop - 1; i++) {
+                for (int i = start + 1; i < stop; i++) {
                     // for-loop condition takes into account head Node
                     newTemp.setNext(temp.getNext()); // copy to next Node
-                    // temp.getNext() is safe due to intercept(stop-1) TK
+                    // temp.getNext() is safe due to intercept(stop-1)
                     newTemp = newTemp.getNext(); // move to next Node
                     // newTemp.getNext() also safe; we just set it!
                     subset.size++;
@@ -201,13 +201,14 @@ public class LinkedStringList extends BaseStringList {
      *              {@code head}
      * @return the {@code Node} at the given index
      */
-    private Node getAt(int index) { // TK
+    private Node getAt(int index) {
         try {
             intercept(index, true); // may throw
-            // ^substitutes hasNext()? TK
+            // guarantees index < size, thus substitutes hasNext()
             Node temp = head;
-            for (int i = 1; i < index; i++) {
+            for (int i = 1; i <= index; i++) {
                 // for-loop condition takes into account head Node
+                // but this is cancelled out bc we actually WANT @ end index
                 temp = temp.getNext();
             } // for
             return temp;
