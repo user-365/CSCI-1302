@@ -1,8 +1,8 @@
-# CSCI-1302
+# CS-1001 (pseudonym)
 Course Name: Software Development
 
 ## Project 1
-Largest personal contribution located in ./src/cs1302/game/<code>ConnectFour</code>.java. When initially cloned, said file consisted of skeleton code with methods waiting to be implemented. The specific implementations were guided by the pre-written javadocs for each method.
+Largest personal contribution located in ./src/cs1001/game/<code>ConnectFour</code>.java. When initially cloned, said file consisted of skeleton code with methods waiting to be implemented. The specific implementations were guided by the pre-written javadocs for each method.
 The `ConnectFour` class represents a game of [Connect Four](https://en.wikipedia.org/w/index.php?title=Connect_Four&oldid=1106025914), excluding the user interaction (inputting moves) and graphical interface (displaying the game board). Handles the logic of game state and win-checking, and implements outward-facing methods for the other classes in the package to connect to.
 
 ### Constructor (line 38), Getter/Setters (line 75)
