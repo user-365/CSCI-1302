@@ -50,7 +50,7 @@ public abstract class BaseStringList implements StringList {
      */
     @Override
     public String makeString(String start, String sep, String end) {
-        StringBuilder sb = new StringBuilder(start);
+        StringBuilder sb = new StringBuilder(start == null ? "null" : start);
         for (int i = 0; i < size; i++) { // note: size, not array length
             if (i == size - 1) { // last element doesn't need a separator after
                 sb.append(get(i));
@@ -103,28 +103,29 @@ public abstract class BaseStringList implements StringList {
      * Assuming all {@code BaseStringList}s are gapless, also guarantees
      * that all preceding items exist.
      * 
+     * The effect is that {@code index} is sandwiched
+     * between {@code 0} and {@code size}.
+     * 
      * <p>
      * Prefer: set {@code checkEnd} to {@code true}.
      * The <em>only</em> case where {@code false} is passed in
-     * is when it's called in {@code intercept(int, String)}
-     * (i.e., <em>only</em> {@code false} when called in {@code add()})
-     * ((i.e., <em>only</em> {@code false} inside {@code BaseStringList})).
+     * is when it's called {@code add()}).
      * 
      * <p>
-     * One of two overloaded {@code intercept()}s. Used by the other.
+     * One of two overloaded {@code intercept()}s.
      * 
      * @param index    the index to be checked
      * @param checkEnd whether to check {@code index == size} or not;
      *                 true if want to check end, false otherwise
      * @throws IndexOutOfBoundsException if index is out of bounds
-     * @see #intercept(int, String)
+     * @see #intercept(String)
      */
     protected void intercept(int index, boolean checkEnd) {
         // leaves index==size corner case on behalf of add()#append
         // if not appending, throw if (index==size) as well
-        if (index < 0 || checkEnd
+        if (index < 0 || (checkEnd
                             ? index >= size
-                            : index > size) {
+                            : index > size)) {
             throw new IndexOutOfBoundsException("Index cannot be out of " +
             "bounds!");
         } // if
@@ -135,25 +136,23 @@ public abstract class BaseStringList implements StringList {
      * Check if arguments can be expected by other methods (i.e., do not
      * produce an exception when passed to the various other instance methods).
      * Throws exceptions if arguments are exceptional.
-     * "Exceptional", in this case, means one of three things:
+     * "Exceptional", in this case, means one of two things:
      * <ul>
-     * <li>item is {@code null},</li>
-     * <li>item (as a {@code String}) is empty, or</li>
-     * <li>index is out of bounds.</li>
+     * <li>item is {@code null}, or</li>
+     * <li>item (as a {@code String}) is empty.</li>
      * </ul>
      * 
      * <p>
      * One of two overloaded {@code intercept()}s.
-     * Uses the other, with arguments {@code (index, true)}.
      * 
-     * @param index the index to be checked
-     * @param item  the item to be checked
+     * @param item   the item to be checked
      * @throws NullPointerException     If item is {@code null}
      * @throws IllegalArgumentException If item (as a {@code String}) is
      *                                  empty
      * @see #intercept(int, boolean)
      */
-    protected void intercept(int index, String item) {
+    protected void intercept(String item) {
+        // ^assumes ONLY add() calls intercept(int, String)
         if (item == null) { // null
             throw new NullPointerException("Item cannot be null!");
         } // if
@@ -161,8 +160,6 @@ public abstract class BaseStringList implements StringList {
             throw new IllegalArgumentException(
                 "Item cannot be an empty string!");
         } // if
-        intercept(index, false);
-        // ^assumes ONLY add() calls intercept(int, String)
     } // intercept
     
 } // BaseStringList

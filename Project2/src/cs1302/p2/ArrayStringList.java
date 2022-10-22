@@ -38,10 +38,10 @@ public class ArrayStringList extends BaseStringList {
             count++; // count every non-null element
         } // for
         this.items =
-        copy(array, 0, new String[-~count], 0, count);
+        copy(array, 0, new String[count + 3], 0, count);
         // ^we want the array up to the first null element.
         // ^adds one space as buffer
-        this.size = count;
+        this.size = count; // update size
     } // Constructor(String[])
 
     /**
@@ -57,7 +57,12 @@ public class ArrayStringList extends BaseStringList {
     @Override
     public boolean add(int index, String item) {
         try {
-            intercept(index, item); // may throw
+            intercept(index, false); // may throw
+            intercept(item); // may throw
+        } catch (RuntimeException re) {
+            throw re;
+        } // try-catch
+        if (size > 0) {
             if (index == size) { // append
                 // copies contents over to bigger array
                 String[] bigger = new String[items.length + 3];
@@ -70,12 +75,11 @@ public class ArrayStringList extends BaseStringList {
                 copySurrounding(index, 0);
                 // fall through to `items[index] = item;`
             } // if-else
-            items[index] = item; // fill in w/ item at index
-            size++;
-            return true;
-        } catch (RuntimeException re) {
-            throw re;
-        } // try-catch
+        } // if
+        // size==0 OR fell through
+        items[index] = item; // fill in w/ item at index
+        size++; // update size
+        return true;
     } // add
 
     /**
@@ -90,7 +94,7 @@ public class ArrayStringList extends BaseStringList {
     @Override
     public void clear() {
         items = new String[items.length]; // keep previous length
-        size = 0;
+        size = 0; // update size
     } // clear
 
     /**
@@ -106,7 +110,7 @@ public class ArrayStringList extends BaseStringList {
     public String get(int index) {
         try {
             intercept(index, true); // may throw
-            return items[index];
+            return items[index] != null ? items[index] : null;
         } catch (RuntimeException re) {
             throw re;
         } // try-catch
@@ -131,13 +135,13 @@ public class ArrayStringList extends BaseStringList {
             String delenda = get(index); // to be returned
             if (index == size - 1) { // "pop": short-circuit to avoid copying
                 items[index] = null;
-                // fall through to size decrement
+                // fall through to size update
             } else {
                 // index < items.length (i.e., "shift" or extract)
                 copySurrounding(index, -1);
-                // fall through to size decrement
+                // fall through to size update
             } // if-else
-            size--;
+            size--; // update size
             return delenda;
         } catch (RuntimeException re) {
             throw re;
@@ -154,20 +158,22 @@ public class ArrayStringList extends BaseStringList {
     @Override
     public StringList slice(int start, int stop) {
         try {
-            intercept(start, true); // may throw
-            // guarantees start > 0
-            intercept(stop - 1, true); // may throw
+            intercept(start, false); // may throw
+            intercept(stop, false); // may throw
             // guarantees stop <= size
             if (start > stop) { // guarantees start < stop
                 throw new IndexOutOfBoundsException("Start index of slice " +
-                "cannot be greater than stop index!");
+                        "cannot be greater than stop index.");
             } else if (stop == start) { // empty ArrayStringList
                 return new ArrayStringList();
-            } // if-elif
-            int num = stop - start;
-            return new ArrayStringList(
-                copy(items, start, new String[num], 0, num));
-            // constructor will add one space as buffer
+            } else {
+                intercept(start, true); // may throw
+                // guarantees start >= 0
+                int num = stop - start;
+                return new ArrayStringList(
+                        copy(items, start, new String[num], 0, num));
+                // constructor will add one space as buffer
+            } // if-elif-else
         } catch (RuntimeException re) {
             throw re;
         } // try-catch
@@ -230,14 +236,18 @@ public class ArrayStringList extends BaseStringList {
      * 
      * Splits source array at point of addition/removal.
      * Pastes bottom section to the same position in destination array.
-     * If adding, pastes top section such that a space is left for added item.
-     * If removing, pastes top section such that it fills in the hole left by
-     * the removed item.
-     * (In both cases, destination array is gapless)
+     * If adding, shifts top section rightward and pastes,
+     * leaving a space for added item.
+     * If removing, shifts top section leftward and pastes,
+     * filling in the hole left by the removed item.
+     * (In both cases, destination array is gapless).
      * 
      * <p>
-     * Side effects: {@code items} refers to a new array with item inserted;
-     * instance {@code size} updated.
+     * Side effects: {@code items} refers to a new array with item inserted.
+     * 
+     * <p>
+     * Notice: {@code size} NOT updated (handled by {@code add()}
+     * and {@code remove()}).
      * 
      * @param index the index at which to insert item
      * @param setting 0 for add, -1 for remove
@@ -255,7 +265,7 @@ public class ArrayStringList extends BaseStringList {
             e.printStackTrace();
         } // try-catch
         /*------------INITIALIZE------------*/ 
-        // preSize+postSize = total # of elements to be copied = size
+        // preSize+postSize = total # of elements to be copied
         int preSize = index; // # of elements before the index
         int postSize = size - index + setting;
         // ^"add": # of elements at/after the index before change
@@ -277,14 +287,12 @@ public class ArrayStringList extends BaseStringList {
         // destIndx should be add:(index+1+(0)) or remove:(index+1+(-1))
         // num should be add:(size-index+(0)) or remove:(size-index+(-1))
         if (index == 0) { // prepended/"shifted"
-            size = postSize; // reset and update size
             items = newArray; // re-refer to newArray
             return; // no need to copy pre-index elements
         } // if
         /*------------PRE-INDEX COPY------------*/
         // pre-index element copying (same for both remove/add)
         newArray = copy(items, 0, newArray, 0, preSize);
-        size = postSize + preSize; // reset and update size
         items = newArray; // re-refer to newArray
     } // insert
     
