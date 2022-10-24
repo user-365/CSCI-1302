@@ -16,6 +16,11 @@ import cs1302.gameutil.TokenGrid;
  * latest information about the state of the game. Most of these changes are described in the
  * project's <a href="https://github.com/cs1001uga/cs1001-c4-alpha#functional-requirements">
  * functional requirements</a>.
+ *
+ * <p>
+ * Last substantial revision: 2022-09-26
+ *
+ * @author user-365
  */
 public class ConnectFour {
 
