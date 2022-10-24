@@ -6,6 +6,11 @@ import cs1302.adt.StringList;
  * BaseStringList is the abstract base class for the two different
  * implementations of a {@code BaseStringList}: {@code ArrayStringList}
  * and {@code LinkedStringList}.
+ *
+ * <p>
+ * Last substantial revision: 2022-10-22
+ *
+ * @author user-365
  */
 public abstract class BaseStringList implements StringList {
 
