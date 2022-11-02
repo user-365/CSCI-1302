@@ -11,6 +11,11 @@ import cs1302.adt.Node;
  * Note: some {@code for} loop conditions must take into account that
  * the head {@code Node}s are already attached,
  * meaning the loop should be executed ONE LESS time than expected.
+ *
+ * <p>
+ * Last substantial revision: 2022-10-22
+ *
+ * @author user-365
  */
 public class LinkedStringList extends BaseStringList {
 

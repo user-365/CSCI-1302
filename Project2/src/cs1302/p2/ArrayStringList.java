@@ -8,6 +8,11 @@ import cs1302.adt.StringList;
  * 
  * The underlying array has at least one extra space at the end as buffer,
  * due to its constructors.
+ *
+ * <p>
+ * Last substantial revision: 2022-10-22
+ *
+ * @author user-365
  */
 public class ArrayStringList extends BaseStringList {
 
