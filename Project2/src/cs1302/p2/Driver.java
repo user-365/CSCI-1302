@@ -13,6 +13,15 @@ import org.apache.commons.lang3.ArrayUtils;
 import cs1302.adt.*;
 import cs1302.oracle.FancyOracleStringList;
 
+/**
+ * Driver is the driver (main method) class for testing the two different
+ * implementations of {@code BaseStringList}.
+ *
+ * <p>
+ * Last substantial revision: 2022-11-11
+ *
+ * @author user-365
+ */
 public class Driver {
     
     private static Method[] ASLMethods = ArrayStringList.class.getDeclaredMethods();

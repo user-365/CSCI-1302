@@ -8,7 +8,7 @@ import cs1302.adt.*;
  * and {@code LinkedStringList}.
  *
  * <p>
- * Last substantial revision: 2022-11-08
+ * Last substantial revision: 2022-11-11
  *
  * @author user-365
  */
