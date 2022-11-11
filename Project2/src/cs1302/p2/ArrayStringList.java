@@ -10,7 +10,7 @@ import cs1302.adt.*;
  * due to its constructors.
  *
  * <p>
- * Last substantial revision: 2022-11-08
+ * Last substantial revision: 2022-11-11
  *
  * @author user-365
  */
@@ -28,14 +28,16 @@ public class ArrayStringList extends BaseStringList {
     } // Constructor()
 
     /**
-     * TK remove...or not?
      * Overloaded constructor. Guaranteed to result in a gapless
      * instance {@code items}. Necessary because {@code items} is private,
      * so there wasn't a way to set {@code items} from {@code public} areas.
      * 
+     * <p>
+     * Copies only to first null element, regardless whether
+     * there are non-null elements after.
      * @param array the array to initialize with
      */
-    private ArrayStringList(String[] array) {
+    ArrayStringList(String[] array) {
         int count = 0;
         for (String string : array) {
             if (string == null) {
@@ -84,10 +86,6 @@ public class ArrayStringList extends BaseStringList {
     public boolean add(int index, String item) {
         intercept(index, false); // may throw IOOBE
         intercept(item); // may throw NPE, IAE
-        // Q: why do i need the try block?
-        // A: TK i don't think i need it
-        // Q: why did i extract this vvv from the try ^^^?
-        // A: so that it's guaranteed to return something
         if (this.size > 0) {
             if (index == this.size) { // append
                 // copies contents over to bigger array
@@ -135,7 +133,8 @@ public class ArrayStringList extends BaseStringList {
     @Override
     public String get(int index) {
         intercept(index, true); // may throw
-        return this.items[index] != null ? this.items[index] : null;
+        return this.items[index]; // != null ? this.items[index] : null;
+        // TK null-check is needed (?) due to existence of clear()
     } // get
 
     /**
@@ -171,28 +170,13 @@ public class ArrayStringList extends BaseStringList {
      * between the specified indices.
      * 
      * <p>
-     * TK changed first start check to true bc it's default
+     * 
      * {@inheritDoc}
      */
     @Override
     public StringList slice(int start, int stop) {
-        intercept(start, true); // may throw
-        // ^guarantees start >= 0
-        intercept(stop, false); // may throw
-        // ^guarantees stop <= size
-        if (stop < start) { // guarantees start <= stop
-            throw new IndexOutOfBoundsException("Start index of slice " +
-                    "cannot be greater than stop index.");
-        } else if (stop == start) { // empty ArrayStringList
-            return new ArrayStringList();
-        } else { // stop > start
-            intercept(start, true); // may throw
-            // TK ^why the redundancy?
-            int d = stop - start;
-            return new ArrayStringList(
-                    copy(this.items, start, new String[d], 0, d, 1));
-            // constructor will add one space as buffer
-        } // if-elif-else
+        return (ArrayStringList) slice(start, stop, 1);
+        // FSL -> ASL (extends SL)
     } // slice
 
     /**
@@ -215,28 +199,29 @@ public class ArrayStringList extends BaseStringList {
     public FancyStringList slice(int start, int stop, int step) {
         // argument check
         if (isEmpty()) {
-            return null;
+            return new ArrayStringList();
         } // if
         intercept(start, true); // may throw
+        // TK The redundant false-then-true intercept STAYS....see below
         intercept(stop, false); // may throw
         // ^guarantees stop <= size
         // boundary check
         if (stop < start) { // guarantees stop >= start
-            throw new IndexOutOfBoundsException("Start index of slice " +
-                    "cannot be greater than stop index.");
+            throw new IndexOutOfBoundsException("Start index of slice (%1$d) " +
+                    "cannot be greater than stop index (%2$d).".formatted(start, stop));
         } else if (stop == start) { // empty ArrayStringList
             return new ArrayStringList();
         } else { // stop > start
+            // redundant here TK intercept(start, true); // may throw
+            // ^guarantees start >= 0
             // step size check
-            if (step < 1) {
-                throw new IndexOutOfBoundsException("Step size must be 1 or greater.");
-            } else if (step == 1) { // contiguous slice
-                return (ArrayStringList) slice(start, stop);
-            } else { // normal/non-contiguous slice
+            if (step < 1) { // illegal
+                throw new IndexOutOfBoundsException("Step size (current: %d) must be 1 or greater.".formatted(step));
+            } else { // step >= 1
                 // intercept(start, true); // TK seems redundant
-                int d = stop - start;
+                int range = stop - start;
                 return new ArrayStringList(
-                        copy(this.items, start, new String[d], 0, d, step));
+                        copy(this.items, start, new String[range], 0, range, step));
                 // constructor will add one space as buffer
             } // if-elif-else
         } // if-elif-else
@@ -252,13 +237,13 @@ public class ArrayStringList extends BaseStringList {
      */
     @Override
     public FancyStringList reverse() {
-        // no size==0 check bc handled in for-loop
-        String[] reverse = new String[this.items.length];
+        // no isEmpty check bc handled in for-loop condition
+        String[] reversed = new String[this.items.length];
         for (int i = 0; i < this.size; i++) {
-            reverse[this.size - -~i] = this.items[i];
-            // TK check         ^this
+            reversed[this.size + ~i] = this.items[i];
+            // TK check          ^this
         } // for
-        return new ArrayStringList(reverse);
+        return new ArrayStringList(reversed);
     } // reverse
 
     /**
@@ -286,7 +271,7 @@ public class ArrayStringList extends BaseStringList {
      * @param srcIdx  the source index (inclusive) from which is copied
      * @param dest     the destination array
      * @param destIdx the destination index (inclusive) at which is pasted
-     * @param d      dber of elements, counting from srcIdx, to copy
+     * @param range      number of elements, counting from srcIdx, to copy
      * @param step     step size; default is 1
      * @return a modified {@code dest} array, with a "subset" of the
      *         {@code src} array copied over it
@@ -295,24 +280,24 @@ public class ArrayStringList extends BaseStringList {
                             int srcIdx,
                             String[] dest,
                             int destIdx,
-                            int d,
+                            int range,
                             int step) {
         // srcIdx within bounds of src, which can accommodate d
         // destIdx within bounds of dest, which can accommodate d
         boolean legal = 0 <= srcIdx && 0 <= destIdx
-                        && srcIdx + d <= src.length
-                        && destIdx + d <= dest.length;
+                        && srcIdx + range <= src.length
+                        && destIdx + range <= dest.length;
         try { // this is actually needed
             if (!legal) {
                 System.out.println("ArrayStringList.copyOf()");
-                throw new IllegalArgumentException("fix ur args lol");
+                throw new IllegalArgumentException("fix ur args lol\nsrcIdx: %1$d\ndestIdx: %2$d\nrange: %3$d\nstep:%4$d".formatted(srcIdx, destIdx, range, step));
             } // if
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
         } // try-catch
         // all arguments legal!
-        for (int i = 0; i < d; i += step) {
-            dest[destIdx + i] = src[srcIdx + i];
+        for (int i = 0, j = 0; i < range; i += step, j++) {
+            dest[destIdx + j] = src[srcIdx + i];
         } // for
         return dest;
     } // copy
@@ -333,7 +318,7 @@ public class ArrayStringList extends BaseStringList {
      * (In both cases, destination array is gapless).
      * 
      * <p>
-     * Side effects: {@code items} refers to a new array with item inserted.
+     * Side effects: {@code items} refers to a new array with blank inserted.
      * 
      * <p>
      * Notice: {@code size} NOT updated (handled by {@code add()}
@@ -348,15 +333,16 @@ public class ArrayStringList extends BaseStringList {
         try { // actually needed!
             if (!legal) {
                 System.out.println("ArrayStringList.copySurrounding()");
-                throw new IllegalArgumentException("fix ur args lol");
+                throw new IllegalArgumentException(
+                        "fix ur args lol\nsetting: %1$d".formatted(setting));
             } // if
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
         } // try-catch
         /*------------INITIALIZE------------*/ 
         // preSize+postSize = total # of elements to be copied
-        int preSize = index; // # of elements before the index
-        int postSize = this.size - index + setting;
+        int preLen = index; // # of elements before the index
+        int postLen = this.size - index + setting;
         // ^"add": # of elements at/after the index before change
         // ^"remove": # of elements after the index before change
         String[] newArray; // will replace current items array
@@ -370,18 +356,18 @@ public class ArrayStringList extends BaseStringList {
         /*------------POST-INDEX COPY------------*/
         // post-index element copying
         newArray =
-            copy(this.items, index - setting, newArray, index-~setting, postSize, 1);
-        //          src     srcIdx         dest        destIdx        d
+            copy(this.items, index - setting, newArray, index-~setting, postLen, 1);
+        //          src         srcIdx         dest        destIdx        range
         // srcIdx should be add:(index-(0)) or remove:(index-(-1))
         // destIdx should be add:(index+1+(0)) or remove:(index+1+(-1))
-        // d should be add:(size-index+(0)) or remove:(size-index+(-1))
+        // range should be add:(size-index+(0)) or remove:(size-index+(-1))
         if (index == 0) { // prepended/"shifted"
             this.items = newArray; // re-refer to newArray
             return; // no need to copy pre-index elements
         } // if
         /*------------PRE-INDEX COPY------------*/
         // pre-index element copying (same for both remove/add)
-        newArray = copy(this.items, 0, newArray, 0, preSize, 1);
+        newArray = copy(this.items, 0, newArray, 0, preLen, 1);
         this.items = newArray; // re-refer to newArray
     } // insert
     

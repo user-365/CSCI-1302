@@ -12,7 +12,7 @@ import cs1302.adt.*;
  * meaning the loop should be executed ONE LESS time than expected.
  *
  * <p>
- * Last substantial revision: 2022-11-08
+ * Last substantial revision: 2022-11-11
  *
  * @author user-365
  */
@@ -29,7 +29,6 @@ public class LinkedStringList extends BaseStringList {
     } // Constructor
 
     /**
-     * TK remove...or not?
      * Overloaded constructor. Necessary because {@code head} is private,
      * so there wasn't a way to set {@code head} from {@code public} areas.
      * The only alternative is a {@code head} accessor/get method, which is
@@ -64,7 +63,7 @@ public class LinkedStringList extends BaseStringList {
         Node before, after;
         this.size = this.head.getItem() != null ? 1 : 0; // head not guaranteed
         // Node isn't Iterable :(
-        while (temp.hasNext()) { // while more readable than for-loop
+        while (temp.hasNext()) { // while-loop more readable than for-loop
             before = temp;
             temp = temp.getNext(); // shift
             if (temp.getItem() != null) { // no-skip
@@ -115,7 +114,7 @@ public class LinkedStringList extends BaseStringList {
     public boolean add(int index, String item) {
         intercept(item); // may throw NPE, IAE
         // Must initialize BEFORE intercept(index)
-        if (this.head == null && index == 0) { // initialize
+        if (this.head == null && index == 0) { // inicializa
             // size == 0
             this.head = new Node(item);
             this.size = 1;
@@ -216,37 +215,13 @@ public class LinkedStringList extends BaseStringList {
      * shouldn't modify original chain.
      * 
      * <p>
-     * TK changed start intercept to true
-     * TK removed second start intercept due to redundancy
+     * The redundant start check STAYS.
      * {@inheritDoc}
      */
     @Override
     public StringList slice(int start, int stop) {
-        intercept(start, true); // may throw
-        // guarantees start >= 0
-        intercept(stop, false); // may throw
-        // guarantees stop <= size
-        if (stop < start) { // guarantees start <= stop
-            throw new IndexOutOfBoundsException("Start index of slice " +
-                    "cannot be greater than stop index.");
-        } else if (stop == start) { // empty LinkedStringList
-            return new LinkedStringList();
-        } else { // stop > start
-            Node temp = getNodeAt(start); // original chain; don't modify!
-            Node newTemp = new Node(temp.getItem()); // copy to new's head
-            LinkedStringList subset = new LinkedStringList(newTemp);
-            // ^overloaded constructor because can't access head (private)
-            for (int i = start + 1; i < stop; i++) {
-                // for-loop condition takes into account head Node
-                newTemp.setNext(new Node(temp.getNext().getItem())); // COPY to next Node
-                // temp.getNext() is safe due to intercept(stop-1)
-                temp = temp.getNext(); // shift to next Node
-                newTemp = newTemp.getNext(); // shift to next Node
-                // newTemp.getNext() also safe; we just set it!
-                subset.size++; // update size
-            } // for
-            return subset;
-        } // if-elif-else
+        return (LinkedStringList) slice(start, stop, 1);
+        // FSL -> LSL (extends SL)
     } // slice
 
     /**
@@ -271,34 +246,40 @@ public class LinkedStringList extends BaseStringList {
     public FancyStringList slice(int start, int stop, int step) {
         // isEmpty check
         if (isEmpty()) {
-            return null;
+            return new LinkedStringList();
         } // if
         // boundary check
         intercept(start, true); // may throw
-        // guarantees start >= 0
+        // ^guarantees start >= 0
+        // previously: (start, false)
         intercept(stop, false); // may throw
         // guarantees stop <= size
-        if (start > stop) { // guarantees start < stop
-            throw new IndexOutOfBoundsException("Start index of slice " +
-                    "cannot be greater than stop index.");
+        if (start > stop) { // guarantees start <= stop
+            throw new IndexOutOfBoundsException("Start index of slice (%1$d) " +
+                    "cannot be greater than stop index (%2$d).".formatted(start, stop));
         } else if (stop == start) { // empty LinkedStringList
             return new LinkedStringList();
         } else { // stop > start
             // step check
             if (step < 1) {
-                throw new IndexOutOfBoundsException("Step size must be 1 or greater.");
-            } else if (step == 1) { // contiguous slice
-                return (LinkedStringList) slice(start, stop);
-            } else { // step > 1
+                throw new IndexOutOfBoundsException("Step size (current: %d) must be 1 or greater.".formatted(step));
+            } else { // step >= 1
                 Node temp = getNodeAt(start); // original chain; don't modify!
                 Node newTemp = new Node(temp.getItem()); // copy to new's head
                 LinkedStringList subset = new LinkedStringList(newTemp);
                 // ^overloaded constructor because can't access head (private)
                 for (int i = start + step; i < stop; i += step) {
                     // for-loop condition takes into account head Node
-                    newTemp.setNext(new Node(this.get(i))); // COPY to next Node
+                    for (int j = 1; j <= step; j++) { // next based on step
+                        if (temp.hasNext()) { // check if temp.getNext() safe
+                            temp = temp.getNext();
+                        } else { // temp doesn't have next()
+                            return subset;
+                            // subset safe bc newTemp didn't call setNext() yet
+                        } // if-else
+                    } // for
+                    newTemp.setNext(new Node(temp.getItem())); // COPY to next Node
                     newTemp = newTemp.getNext(); // shift to next Node
-                    // newTemp.getNext() safe; we just set it!
                     subset.size++; // update size
                 } // for
                 return subset;
