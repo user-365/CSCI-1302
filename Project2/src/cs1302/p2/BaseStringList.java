@@ -43,10 +43,10 @@ public abstract class BaseStringList implements FancyStringList {
         intercept(index, false); // throws IOOBE
         if (items == this) { // yes self-reference
             // TK self-reference            
-            // calculated algorithm: setup, before, middle, after
+            // pencil-and-paper algorithm: setup, before, middle, after
             // setup
             final int len = this.size;
-            final int init = index;
+            final int init = index; // initial index
 
             // before (a). get(i=0++), put at index=index+0++
             // before (b). get(i=1++), put at index=index+1++
@@ -56,20 +56,22 @@ public abstract class BaseStringList implements FancyStringList {
             for (; i < init; i++) {
                 add(i + init, get(i)); // concrete-subclass method
             } // for
+            // i == init due to last i++
 
             int loc = i;
             // middle (a). if index(set) == 2*(init)...
-            if (i + init == 2 * init) {
-                // ...then add (init)+1 to loc
-                loc += 1 + init;
+            if (i == init) {
+                // ...then add (init) to loc
+                loc += init;
             } // if
             // middle (b). assert loc = (set)
             assert loc == i + init;
 
-            // after (a). get(loc=set+0+=2), put at index=(set)++
-            // after (b). get(loc=set+2+=2), put at index=(set)++
+            // after (a). get(loc=set+0 +=2), put at index=(set)++
+            // after (b). get(loc=set+2 +=2), put at index=(set)++
             // ...
-            for (; i < len + init; i++, loc += 2) {
+            for (; i < len + init && loc < size; i++, loc += 2) {
+                // loc>=i always
                 add(i + init, get(loc)); // concrete-subclass method
             } // for
         } else { // no self-reference
@@ -258,8 +260,7 @@ public abstract class BaseStringList implements FancyStringList {
         if (index < 0 || (checkEnd
                             ? index >= size
                             : index > size)) {
-            throw new IndexOutOfBoundsException("Index cannot be out of " +
-            "bounds!");
+            throw new IndexOutOfBoundsException("Index %1$d must be in [0, %2$d".formatted(index, size) + (checkEnd ? ")." : "]."));
         } // if
     } // ifOut
 
