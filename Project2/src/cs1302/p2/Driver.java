@@ -179,13 +179,13 @@ public class Driver {
                     } // try-catch
                     checkSideEffect = dubious.toString().equals(trusted.toString());
                     System.out.println("v=============v");
-                    System.out.println("Check R/T: " + (checkReturnValue || checkException));
+                    System.out.println("Check R: " + (checkException));
                     System.out.println("Check S.E.: " + checkSideEffect);
                     return Boolean.valueOf(checkException && checkSideEffect);
                 } // if-else
             } // act (implemented)
         }; // testAction
-        NestedFor comparisonFor = new NestedFor(-1, 3, testAction);
+        NestedFor comparisonFor = new NestedFor(-1, 5, testAction);
         comparisonFor.nFor(paramCount[0]);
         // ^deciding how deep we want to nest based on number of params.
         // TK what to do for non-numeric params?
@@ -432,7 +432,9 @@ public class Driver {
         } // if
         
         try {
-            fsl = fsl.getClass().getConstructor(StringList.class).newInstance(new ArrayStringList(new String[]{"a", "b", "c", "d", "e", "f", "g"}));
+            fsl = fsl.getClass().getConstructor(StringList.class).newInstance(new ArrayStringList(
+                new String[]{"a", "b", "c", "d", "e", "f", "g"}
+                ));
         } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
                 | InvocationTargetException e) {
             // TODO Auto-generated catch block
@@ -500,7 +502,9 @@ public class Driver {
             System.exit(0);
         } // if
         
-        ArrayStringList s2 = new ArrayStringList(new String[] { "1", "2", "3", "4" });
+        ArrayStringList s2 = new ArrayStringList(
+            new String[] { "1", "2", "3", "4" }
+            );
 
         // Testing new prepend/append
         fsl.prepend(s2);
@@ -520,12 +524,42 @@ public class Driver {
             System.out.println("TEST: new prepend: Test Failed");
             System.exit(0);
         } // if
-        
+
+        // Testing reverse
+        fsl = fsl.reverse();
+        if (fsl.toString().equals("[4, 3, 2, 1, 4, 3, 2, 1, 4, 3, 2, 1, 4, 3, 2, 1]")) {
+            System.out.println("TEST: reverse: Test Passed");
+        } else {
+            System.out.println("TEST: reverse: Test Failed");
+            System.exit(0);
+        } // if
+
+        // Testing contains
+        if (fsl.contains(0, "1") && fsl.contains(0, "2") && fsl.contains(0, "3") && fsl.contains(0, "4") && !fsl.contains(0, "5")) {
+            System.out.println("TEST: contains: Test Passed");
+        } else {
+            System.out.println("TEST: contains: Test Failed");
+            System.exit(0);
+        } // if
+
+        // Testing indexOf
+        for (int x = 0; x < fsl.size() - 4; x++) {
+            int oneToFour = -~x % 4 == 0 ? 4 : -~x % 4;
+            int index = fsl.indexOf(x, Integer.toString(oneToFour));
+            if (Integer.valueOf(fsl.get(index)) + Integer.valueOf(fsl.get(x)) == 5) {
+                continue;
+            } else {
+                System.out.println("TEST: indexOf: Test Failed");
+                System.exit(0);
+            } // if
+        } // for
+        System.out.println("TEST: indexOf: Test Passed");
+
         System.out.println("TEST: finished testing " + fsl.getClass().getSimpleName());
 
     } // test
 
-    public static void autoTest(FancyStringList fsl) {
+    public static void autotest(FancyStringList fsl) {
 
         FancyOracleStringList trusted = new FancyOracleStringList();
 
@@ -550,11 +584,10 @@ public class Driver {
     public static void main(String[] args) {
         
         try {
-            test(new ArrayStringList());
+            autotest(new ArrayStringList());
             System.out.println("-".repeat(80));
-            test(new LinkedStringList());
-        } catch (SecurityException | NoSuchMethodException e) {
-            // TODO Auto-generated catch block
+            autotest(new LinkedStringList());
+        } catch (SecurityException /*| NoSuchMethodException*/ e) {
             e.printStackTrace();
         }
         
