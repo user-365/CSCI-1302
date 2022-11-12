@@ -37,19 +37,21 @@ public class ArrayStringList extends BaseStringList {
      * there are non-null elements after.
      * @param array the array to initialize with
      */
-    ArrayStringList(String[] array) {
-        int count = 0;
-        for (String string : array) {
-            if (string == null) {
-                break; // break on first-encountered null element
-            } // if
-            count++; // count every non-null element
-        } // for
-        this.items =
-        copy(array, 0, new String[count + 3], 0, count, 1);
-        // ^we want the array up to the first null element.
-        // ^adds one space as buffer
-        this.size = count; // update size
+    ArrayStringList(String[] array) { // TK remember to private again
+        this();
+        if (array != null) {
+            int count = 0;
+            for (String string : array) {
+                if (string == null) {
+                    break; // break on first-encountered null element
+                } // if
+                count++; // count every non-null element
+            } // for
+            this.items = copy(array, 0, new String[count + 3], 0, count, 1);
+            // ^we want the array up to the first null element.
+            // ^adds one space as buffer
+            this.size = count; // update size
+        } // if-not-null
     } // Constructor(String[])
 
     /**
@@ -62,13 +64,15 @@ public class ArrayStringList extends BaseStringList {
     public ArrayStringList(StringList other) {
         if (other == null) {
             throw new NullPointerException("Copied StringList must not be null");
-        } // ifnull
-        this.items = new String[other.size() + 3];
-        // ^adds three spaces as buffer
-        for (int i = 0; i < other.size(); i++) {
-            this.items[i] = other.get(i);
-        } // for
-        this.size = other.size(); // update size
+        } // if-null
+        if (!other.isEmpty()) { // made redundant by for-loop inside
+            this.items = new String[other.size() + 3];
+            // ^adds three spaces as buffer
+            for (int i = 0; i < other.size(); i++) { // isEmpty taken care of by condition
+                this.items[i] = other.get(i);
+            } // for
+            this.size = other.size(); // update size
+        } // if
     } // ArrayStringList
 
     /**
@@ -77,9 +81,6 @@ public class ArrayStringList extends BaseStringList {
      * 
      * Short-circuits appending OR copies like normal (leaving a space),
      * then inserting provided {@code item} at {@code index}.
-     * 
-     * <p>
-     * TK removed try catch
      * {@inheritDoc}
      */
     @Override
@@ -125,16 +126,12 @@ public class ArrayStringList extends BaseStringList {
      * in the {@code ArrayStringList}'s array.
      * 
      * ditto
-     * 
-     * <p>
-     * TK removed try-catch. if bad, put it back!
      * {@inheritDoc}
      */
     @Override
     public String get(int index) {
         intercept(index, true); // may throw
-        return this.items[index]; // != null ? this.items[index] : null;
-        // TK null-check is needed (?) due to existence of clear()
+        return this.items[index];
     } // get
 
     /**
@@ -146,8 +143,6 @@ public class ArrayStringList extends BaseStringList {
      * Otherwise, copy the array so that the hole left by the removed item
      * is filled in.
      * 
-     * <p>
-     * TK moved EVERYTHING OUT of try. if bad, put everything back IN
      * {@inheritDoc}
      */
     @Override
@@ -202,23 +197,22 @@ public class ArrayStringList extends BaseStringList {
             return new ArrayStringList();
         } // if
         intercept(start, true); // may throw
-        // TK The redundant false-then-true intercept STAYS....see below
         intercept(stop, false); // may throw
         // ^guarantees stop <= size
         // boundary check
         if (stop < start) { // guarantees stop >= start
             throw new IndexOutOfBoundsException("Start index of slice (%1$d) " +
-                    "cannot be greater than stop index (%2$d).".formatted(start, stop));
+                    "cannot be greater than stop index (%2$d)."
+                    .formatted(start, stop));
         } else if (stop == start) { // empty ArrayStringList
             return new ArrayStringList();
         } else { // stop > start
-            // redundant here TK intercept(start, true); // may throw
             // ^guarantees start >= 0
             // step size check
             if (step < 1) { // illegal
-                throw new IndexOutOfBoundsException("Step size (current: %d) must be 1 or greater.".formatted(step));
+                throw new IndexOutOfBoundsException("Step size (current: %d) must be 1 or greater."
+                .formatted(step));
             } else { // step >= 1
-                // intercept(start, true); // TK seems redundant
                 int range = stop - start;
                 return new ArrayStringList(
                         copy(this.items, start, new String[range], 0, range, step));
@@ -250,6 +244,7 @@ public class ArrayStringList extends BaseStringList {
      * Helper method. Similar to
      * {@link java.lang.System#arraycopy(Object, int, Object, int, int)} for
      * {@code String[]}s.
+     * Expensive if called repeatedly.
      * 
      * <p>
      * Differences: Not dependent on side-effects: returns a {@code String[]};
@@ -257,7 +252,8 @@ public class ArrayStringList extends BaseStringList {
      * {@link ArrayStringList#slice(int, int, int)}).
      * 
      * <p>
-     * Side effect: will modify {@code dest} array. Even still, don't treat it
+     * <strong>Side effect</strong>: will modify {@code dest} array. Even still,
+     * don't treat it
      * like {@code void}, since it will NOT modify SIZE of {@code dest} array.
      * i can't get rid of this side effect since, to avoid modifying
      * {@code dest}, a COPY of {@code dest} is required in the first place,
@@ -267,12 +263,12 @@ public class ArrayStringList extends BaseStringList {
      * {@code step} is included as an argument here because
      * it's easy to implement.
      * 
-     * @param src      the source array
+     * @param src     the source array
      * @param srcIdx  the source index (inclusive) from which is copied
-     * @param dest     the destination array
+     * @param dest    the destination array
      * @param destIdx the destination index (inclusive) at which is pasted
-     * @param range      number of elements, counting from srcIdx, to copy
-     * @param step     step size; default is 1
+     * @param range   number of elements, counting from srcIdx, to copy
+     * @param step    step size; default is 1
      * @return a modified {@code dest} array, with a "subset" of the
      *         {@code src} array copied over it
      */
@@ -286,11 +282,14 @@ public class ArrayStringList extends BaseStringList {
         // destIdx within bounds of dest, which can accommodate d
         boolean legal = 0 <= srcIdx && 0 <= destIdx
                         && srcIdx + range <= src.length
-                        && destIdx + range <= dest.length;
+                        && destIdx + range <= dest.length
+                        && step > 0;
         try { // this is actually needed
             if (!legal) {
                 System.out.println("ArrayStringList.copyOf()");
-                throw new IllegalArgumentException("fix ur args lol\nsrcIdx: %1$d\ndestIdx: %2$d\nrange: %3$d\nstep:%4$d".formatted(srcIdx, destIdx, range, step));
+                throw new IllegalArgumentException("fix ur args lol\nsrcIdx: %1$d" + 
+                "\ndestIdx: %2$d\nrange: %3$d\nstep:%4$d"
+                .formatted(srcIdx, destIdx, range, step));
             } // if
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
@@ -317,6 +316,8 @@ public class ArrayStringList extends BaseStringList {
      * filling in the hole left by the removed item.
      * (In both cases, destination array is gapless).
      * 
+     * Expensive if called repeatedly.
+     * 
      * <p>
      * Side effects: {@code items} refers to a new array with blank inserted.
      * 
@@ -324,7 +325,7 @@ public class ArrayStringList extends BaseStringList {
      * Notice: {@code size} NOT updated (handled by {@code add()}
      * and {@code remove()}).
      * 
-     * @param index the index at which to insert item
+     * @param index   the index at which to insert item
      * @param setting 0 for add, -1 for remove
      */
     private void copySurrounding(int index, int setting) {
@@ -334,7 +335,8 @@ public class ArrayStringList extends BaseStringList {
             if (!legal) {
                 System.out.println("ArrayStringList.copySurrounding()");
                 throw new IllegalArgumentException(
-                        "fix ur args lol\nsetting: %1$d".formatted(setting));
+                        "fix ur args lol\nsetting: %1$d"
+                        .formatted(setting));
             } // if
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
@@ -356,7 +358,7 @@ public class ArrayStringList extends BaseStringList {
         /*------------POST-INDEX COPY------------*/
         // post-index element copying
         newArray =
-            copy(this.items, index - setting, newArray, index-~setting, postLen, 1);
+            copy(this.items, index - setting, newArray, index - ~setting, postLen, 1);
         //          src         srcIdx         dest        destIdx        range
         // srcIdx should be add:(index-(0)) or remove:(index-(-1))
         // destIdx should be add:(index+1+(0)) or remove:(index+1+(-1))
