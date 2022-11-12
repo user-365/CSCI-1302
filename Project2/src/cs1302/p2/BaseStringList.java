@@ -41,8 +41,7 @@ public abstract class BaseStringList implements FancyStringList {
             throw new NullPointerException("Added StringList cannot be null!");
         } // ifnull
         intercept(index, false); // throws IOOBE
-        if (items == this) { // yes self-reference
-            // TK self-reference            
+        if (items == this) { // yes self-reference          
             // pencil-and-paper algorithm: setup, before, middle, after
             // setup
             final int len = this.size;
@@ -119,6 +118,7 @@ public abstract class BaseStringList implements FancyStringList {
     public boolean contains(int start, String target) {
         if (start >= 0) {
             for (int i = start; i < size; i++) {
+                // ^out of bounds taken care of by condition
                 if (get(i).equals(target)) {
                     return true;
                 } // if
@@ -169,6 +169,7 @@ public abstract class BaseStringList implements FancyStringList {
     @Override
     public String makeString(String start, String sep, String end) {
         StringBuilder sb = new StringBuilder(start == null ? "null" : start);
+        // ^i have a feeling the null-check is implicit
         for (int i = 0; i < size; i++) { // note: size, not array length
             if (i == size - 1) { // last element doesn't need a separator after
                 sb.append(get(i));
@@ -243,7 +244,7 @@ public abstract class BaseStringList implements FancyStringList {
      * <p>
      * Prefer: set {@code checkEnd} to {@code true}.
      * The <em>only</em> case where {@code false} is passed in
-     * is when it's called in {@code add()} or for TK methodname `stop` of {@code slice()}).
+     * is when it's called in {@code add()} or for `stop` argument of {@code slice()}).
      * 
      * <p>
      * One of two overloaded {@code intercept()}s.
@@ -260,7 +261,8 @@ public abstract class BaseStringList implements FancyStringList {
         if (index < 0 || (checkEnd
                             ? index >= size
                             : index > size)) {
-            throw new IndexOutOfBoundsException("Index %1$d must be in [0, %2$d".formatted(index, size) + (checkEnd ? ")." : "]."));
+            throw new IndexOutOfBoundsException("Index %1$d must be in [0, %2$d"
+            .formatted(index, size) + (checkEnd ? ")." : "]."));
         } // if
     } // ifOut
 
