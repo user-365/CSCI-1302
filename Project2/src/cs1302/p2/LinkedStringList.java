@@ -59,21 +59,24 @@ public class LinkedStringList extends BaseStringList {
      * @param head the {@code LinkedStringList}'s head {@code Node}
      */
     private LinkedStringList(Node head) {
-        Node temp = this.head = head;
-        Node before, after;
-        this.size = this.head.getItem() != null ? 1 : 0; // head not guaranteed
-        // Node isn't Iterable :(
-        while (temp.hasNext()) { // while-loop more readable than for-loop
-            before = temp;
-            temp = temp.getNext(); // shift
-            if (temp.getItem() != null) { // no-skip
-                before.setNext(new Node(temp.getItem()));
-                this.size++;
-            } else if (temp.getItem() == null) { // skip
-                after = temp.getNext();
-                before.setNext(new Node(after.getItem())); // stitch
-            } // if-elif
-        } // while
+        this();
+        if (head != null) {
+            Node temp = this.head = head;
+            Node before, after;
+            this.size = this.head.getItem() != null ? 1 : 0; // head not guaranteed
+            // Node isn't Iterable :(
+            while (temp.hasNext()) { // while-loop more readable than for-loop
+                before = temp;
+                temp = temp.getNext(); // shift
+                if (temp.getItem() != null) { // no-skip
+                    before.setNext(new Node(temp.getItem()));
+                    this.size++;
+                } else if (temp.getItem() == null) { // skip
+                    after = temp.getNext();
+                    before.setNext(new Node(after.getItem())); // stitch
+                } // if-elif
+            } // while
+        } // if-not-null
     } // Constructor(Node)
 
     /**
@@ -85,16 +88,19 @@ public class LinkedStringList extends BaseStringList {
      *              object for the copy
      */
     public LinkedStringList(StringList other) {
+        this();
         if (other == null) {
             throw new NullPointerException("Copied StringList must not be null");
-        } // ifnull
-        Node temp = this.head = new Node(other.get(0)); // set head
-        this.size = 1; // guaranteed..TK
-        for (int i = 1; i < other.size(); i++) {
-            temp.setNext(new Node(other.get(i)));
-            this.size++;
-            temp = temp.getNext();
-        } // for
+        } // if-null
+        if (!other.isEmpty()) { // made redundant by the for-loop condition
+            Node temp = this.head = new Node(other.get(0)); // set head
+            this.size = 1; // guaranteed by if();
+            for (int i = 1; i < other.size(); i++) {
+                temp.setNext(new Node(other.get(i)));
+                this.size++;
+                temp = temp.getNext();
+            } // for
+        } // if
     } // Constructor (copy)
 
     /**
@@ -105,7 +111,7 @@ public class LinkedStringList extends BaseStringList {
      * called {@code newNode}), integrating it into the instance's
      * {@code Node} chain at the specified index.
      * 
-     * TK: must prepend before appending, there is concept of before-ness
+     * TK: must prepend before appending, there is concept of before-ness (? what's this mean?)
      * 
      * <p>
      * {@inheritDoc}
@@ -166,6 +172,7 @@ public class LinkedStringList extends BaseStringList {
      * then returns its value (an item).
      * Different from {@code getNodeAt()}: this method gets the {@code String}/item,
      * not the {@code Node}.
+     * Expensive if called repeatedly.
      * 
      * <p>
      * {@inheritDoc}
@@ -207,7 +214,7 @@ public class LinkedStringList extends BaseStringList {
     /**
      * Returns a "subset" of the {@code LinkedStringList}
      * between the specified indices. Returns same type as caller.
-     * <em>Not</em> a special case of TK methodname`slice(int, int, int)`
+     * <em>Not</em> a special case of {@link #slice(int, int, int) stepped slice}
      * since they have different return values.
      * 
      * <p>
@@ -216,7 +223,9 @@ public class LinkedStringList extends BaseStringList {
      * 
      * <p>
      * The redundant start check STAYS.
-     * {@inheritDoc}
+     * 
+     * @see #slice(int,int,int) stepped slice
+     *      {@inheritDoc}
      */
     @Override
     public StringList slice(int start, int stop) {
@@ -229,7 +238,7 @@ public class LinkedStringList extends BaseStringList {
      * between the specified start index (inclusive) and stop index (exclusive) by
      * step.
      * 
-     * Literally the same as TK methodname
+     * Literally the same as {@link #slice(int,int) contiguous slice}.
      * 
      * @param start left endpoint (inclusive) of the slice
      * @param stop  right endpoint (exclusive) of the slice
@@ -240,7 +249,8 @@ public class LinkedStringList extends BaseStringList {
      * @throws IndexOutOfBoundsException - for an illegal endpoint index or step
      *                                   value (start < 0 || stop > size() || start
      *                                   > stop || step < 1)
-     *                                   {@inheritDoc}
+     * @see #slice(int,int) contiguous slice
+     *      {@inheritDoc}
      */
     @Override
     public FancyStringList slice(int start, int stop, int step) {
@@ -256,13 +266,15 @@ public class LinkedStringList extends BaseStringList {
         // guarantees stop <= size
         if (start > stop) { // guarantees start <= stop
             throw new IndexOutOfBoundsException("Start index of slice (%1$d) " +
-                    "cannot be greater than stop index (%2$d).".formatted(start, stop));
+                    "cannot be greater than stop index (%2$d)."
+                    .formatted(start, stop));
         } else if (stop == start) { // empty LinkedStringList
             return new LinkedStringList();
         } else { // stop > start
             // step check
             if (step < 1) {
-                throw new IndexOutOfBoundsException("Step size (current: %d) must be 1 or greater.".formatted(step));
+                throw new IndexOutOfBoundsException("Step size (current: %d) must be 1 or greater."
+                .formatted(step));
             } else { // step >= 1
                 Node temp = getNodeAt(start); // original chain; don't modify!
                 Node newTemp = new Node(temp.getItem()); // copy to new's head
@@ -303,24 +315,25 @@ public class LinkedStringList extends BaseStringList {
             // using an array bc i think it'll be faster.
             // it's not the fastest but i can't avoid modifying w/ other algos.
             // singly linked lists only go forward not backward
-            String[] blueprint = new String[this.size];
+            String[] template = new String[this.size];
             // copy over
             Node temp = this.head;
-            blueprint[0] = temp.getItem(); // first item
+            template[0] = temp.getItem(); // first item
             for (int i = 1; i < this.size; i++) {
-                blueprint[i] = (temp = temp.getNext()).getItem();
+                template[i] = (temp = temp.getNext()).getItem();
                 // getting item only so Node-chain not modified
-                // TK the parenthesized assignment MUST come first
+                // the parenthesized assignment WILL precede
+                // getNext() safe bc bounded by this.size
             } // for
             // copy to new in reverse
-            LinkedStringList reverse = new LinkedStringList();
-            reverse.head.setItem(blueprint[blueprint.length - 1]); // first item
-            temp = reverse.head; // TK make sure no modify this/self
-            for (int i = blueprint.length - 2; i >= 0; i--) {
-                (temp = temp.getNext()).setItem(blueprint[i]);
-                // TK the parenthesized assignment MUST come first
+            LinkedStringList reversed = new LinkedStringList(new Node(template[template.length - 1])); // first item
+            Node revTemp = reversed.head; // make sure no modify self
+            for (int i = template.length - 2; i >= 0; i--) {
+                revTemp.setNext(new Node(template[i]));
+                revTemp = revTemp.getNext();
+                reversed.size++;
             } // for
-            return reverse;
+            return reversed;
         } // if-else
     } // reverse
 
@@ -328,12 +341,23 @@ public class LinkedStringList extends BaseStringList {
      * Helper method. Gets the {@code Node} at a given index,
      * relative to instance's {@code head}.
      * Necessary because {@code get()} doesn't return a {@code Node}.
+     * Expensive if called repeatedly.
      * 
      * @param index the index of the requested {@code Node}, beginning at
      *              {@code head}
      * @return the {@code Node} at the given index
      */
-    private Node getNodeAt(int index) {
+    private Node getNodeAt(int index) { 
+        // update size (based on Node-chain)..,...
+        if (this.head != null) {
+            int size = 1;
+            Node temp = this.head;
+            while (temp.hasNext()) {
+                size++;
+                temp = temp.getNext();
+            } // while
+            this.size = size;
+        } // if-not-null TK why doesn't this work!??
         intercept(index, true); // may throw
         // guarantees index >= 0
         // guarantees index < size, thus substitutes hasNext()
