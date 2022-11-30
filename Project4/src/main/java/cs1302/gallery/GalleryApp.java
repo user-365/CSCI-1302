@@ -52,6 +52,7 @@ public class GalleryApp extends Application {
      * make decisions based on current state).
      */
     private enum State {
+        INITIAL, // only set to INITIAL once in app lifetime!
         AFTER_DOWNLOAD, // intended to be default state (of inactivity)
         DURING_DOWNLOAD, // state of activity
         PLAYING; // state of activity
@@ -240,21 +241,22 @@ public class GalleryApp extends Application {
                     }); // playButton.setOnAction
                     // Random Replacement
                     KeyFrame keyFrame = new KeyFrame(Duration.seconds(2),
-                            event -> {
-                                Random rand = new Random();
-                                int visibleIndex = rand.nextInt(20);
-                                int invisibleSize = imageGroups.get(false).size();
-                                ImageView toInvisible = imageGroups.get(true)
-                                        .remove(visibleIndex);
-                                imageGroups.get(false).add(toInvisible); // order irrelevant
-                                ImageView toVisible = imageGroups.get(false)
-                                        .remove(rand.nextInt(invisibleSize));
-                                imageGroups.get(true).set(visibleIndex, toVisible);
-                                // ^order matters (same tile replaced)
-                                mainContent.getChildren().set(visibleIndex,
-                                        imageGroups.get(true).get(visibleIndex));
-                                // ^TK(future) crappy; need to rewrite code
-                            }); // new KeyFrame
+                        event -> {
+                            Random rand = new Random();
+                            int visibleIndex = rand.nextInt(20);
+                            int invisibleSize = imageGroups.get(false).size();
+                            ImageView toInvisible = imageGroups.get(true)
+                                    .remove(visibleIndex);
+                            imageGroups.get(false).add(toInvisible); // order irrelevant
+                            ImageView toVisible = imageGroups.get(false)
+                                    .remove(rand.nextInt(invisibleSize));
+                            imageGroups.get(true).set(visibleIndex, toVisible);
+                            // ^order matters (same tile replaced)
+                            mainContent.getChildren().set(visibleIndex,
+                                    imageGroups.get(true).get(visibleIndex));
+                            // ^TK(future) crappy; need to rewrite code
+                            // ^sets/updates a single tile
+                        }); // new KeyFrame
                     Timeline timeline = new Timeline();
                     timeline.setCycleCount(Timeline.INDEFINITE);
                     timeline.getKeyFrames().add(keyFrame);
@@ -265,6 +267,7 @@ public class GalleryApp extends Application {
                     getButton.setDisable(false); // enabled
                     // progress bar 100%
                     updateProgress(1.0);
+                    break;
                 default:
                     break;
             } // switch
@@ -288,11 +291,8 @@ public class GalleryApp extends Application {
     public void init() {
 
         System.out.println("init() called");
-        state.addListener(runStateChangeListener);
-        state = new SimpleObjectProperty<GalleryApp.State>(State.AFTER_DOWNLOAD);
 
         // ----------------------(Search Bar)---------------------- //
-        reinitializeButtons();
         // Play/Pause Button
         playButton = new Button("Play"); // "Pause"
         playButton.setOnAction(e -> {
@@ -311,9 +311,17 @@ public class GalleryApp extends Application {
         getButton = new Button("Get Images");
         getButton.setOnAction(e -> state.set(State.DURING_DOWNLOAD)); // get images!
 
+        // Buttons Listener
+        state = new SimpleObjectProperty<GalleryApp.State>(State.INITIAL);
+        state.addListener(runStateChangeListener);
+        reinitializeButtons();
+
         // ----------------------(Main Content)---------------------- //
         imageList = Arrays.asList(new ImageView[20]); // prepare 20 blank slots/nulls
-        Collections.fill(imageList, new ImageView(defaultImage));
+        imageList = imageList.stream()
+                            .filter(iv -> iv == null)
+                            .map(iv -> newDefaultImageView())
+                            .collect(Collectors.toList());
         // ^populate those 20 blanks with the default image
         imageGroups = imageList.stream()
                 .collect(Collectors.partitioningBy(s -> imageList.indexOf(s) <= 20));
@@ -384,6 +392,14 @@ public class GalleryApp extends Application {
     private void updateProgress(double progress) {
         Platform.runLater(() -> progressBar.setProgress(progress));
     } // updateProgress
+
+    /**
+     * Helper method. Constructs a new default {@code Image} inside an
+     * {@code ImageView}.
+     */
+    private ImageView newDefaultImageView() {
+        return new ImageView(defaultImage); 
+    } // newDefaultImageView
 
     /** {@inheritDoc} */
     @Override
