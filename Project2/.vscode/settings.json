@@ -1,7 +1,8 @@
 {
     "java.project.referencedLibraries": [
         "lib/**/*.jar",
-        "phase1.jar"
+        "phase1.jar",
+        "x:\\Downloads - Data Drive\\commons-lang3-3.12.0.jar"
     ],
     "java.dependency.syncWithFolderExplorer": true
 }
