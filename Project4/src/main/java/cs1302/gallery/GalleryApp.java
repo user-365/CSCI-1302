@@ -12,6 +12,10 @@ import java.nio.charset.StandardCharsets;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
+import com.google.gson.TypeAdapter;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
+import com.google.gson.stream.JsonWriter;
 
 // JavaFX
 import javafx.application.*;
@@ -19,7 +23,10 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.*;
 import javafx.collections.*;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.Scene;
@@ -40,8 +47,10 @@ import java.util.stream.Collectors;
  * Represents an iTunes Gallery App.
  * 
  * <p>
- * Last substantial modification: 29-11-2022, 22:14 EST
+ * Last substantial modification: 29-11-2022, 23:58 EST
  * 
+ * TODO: use a JsonArray and JsonObject
+ * TODO: make dark mode
  * @author Yitao Tian
  */
 public class GalleryApp extends Application {
@@ -61,12 +70,113 @@ public class GalleryApp extends Application {
     /** HTTP client. */
     public static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
             .version(HttpClient.Version.HTTP_2) // uses HTTP protocol version 2 where possible
-            .followRedirects(HttpClient.Redirect.NORMAL) // always redirects, except from HTTPS to HTTP
+            .followRedirects(HttpClient.Redirect.NORMAL) // always redirects, except to HTTP
             .build(); // builds and returns a HttpClient object
     private HttpRequest request;
+    private volatile ItunesResponse itunesResponse;
+
+    static class RemoveDuplicatesAdapter extends TypeAdapter<ItunesResponse> {
+
+        Set<String> artworkURIs = new HashSet<String>();
+        ItunesResponse returnedContainer = new ItunesResponse();
+        int resultCount = 0;
+        List<ItunesResult> results = new ArrayList<ItunesResult>();
+        ItunesResult tempResult = new ItunesResult();
+        String tempURI;
+        String tempName;
+
+        /**  */
+        @Override
+        public ItunesResponse read(JsonReader in) throws IOException {
+            
+            in.beginObject();
+
+            peekAndConsume(in);
+
+            System.out.println("\n\noutside"+in.peek());
+
+            in.endArray();
+            in.endObject();
+            returnedContainer.resultCount = resultCount;
+            returnedContainer.results = results.toArray(new ItunesResult[0]);
+            return returnedContainer;
+
+        } // read
+
+        @Override
+        public void write(JsonWriter out, ItunesResponse ir) throws IOException {
+            // don't need to do anything special here,
+            out.beginObject();
+            
+        } // write
+
+        private void peekAndConsume(JsonReader in) throws IOException {
+            while (in.hasNext()) {
+                JsonToken token = in.peek();
+                System.out.println("outer swtich"+ token.toString());
+                System.out.println();
+                switch (token) {
+                    case BEGIN_OBJECT:
+                        in.beginObject();
+                        System.out.println("in begin objkect");
+                        break;
+                    case END_OBJECT:
+                        in.endObject();
+                        System.out.println("in end objkect");
+                        break;
+                    case BEGIN_ARRAY:
+                        in.beginArray();
+                        break;
+                    //case END_ARRAY:
+                    //    in.endArray();
+                    //    break;
+                    case NAME:
+                        tempName = in.nextName();
+                        System.out.println("innder switch"+ tempName);
+                        switch (tempName) {
+                            case "results":
+                                System.out.println(token.toString());
+                                System.out.println();
+                                break;
+                            case "wrapperType":
+                                tempResult.wrapperType = in.nextString();
+                                System.out.println(tempResult.wrapperType);
+                                break;
+                            case "kind":
+                                tempResult.kind = in.nextString();
+                                System.out.println(tempResult.kind);
+                                break;
+                            case "artworkUrl100":
+                                tempURI = in.nextString();
+                                if (artworkURIs.add(tempURI)) {
+                                    tempResult.artworkUrl100 = tempURI;
+                                    System.out.println(tempResult.artworkUrl100);
+                                    results.add(tempResult);
+                                    resultCount++;
+                                    System.out.println(resultCount);
+                                } // if
+                                tempResult = new ItunesResult();
+                                tempURI = tempName = null;
+                                break;
+                            default:
+                                in.skipValue();
+                                break;
+                        } // switch
+                        System.out.println("end of innder sqithc"+in.peek());
+                        break;
+                    default:
+                        in.skipValue();
+                        break;
+                } // switch
+            } // while
+            System.out.println("out of LOOP");
+        } // peekAndConsume
+
+    } // RemoveDuplicatesAdapter
 
     /** Google {@code Gson} object for parsing JSON-formatted strings. */
     public static Gson GSON = new GsonBuilder()
+            .registerTypeAdapter(ItunesResponse.class, new RemoveDuplicatesAdapter().nullSafe())
             .setPrettyPrinting() // enable nice output when printing
             .create(); // builds and returns a Gson object
 
@@ -91,6 +201,9 @@ public class GalleryApp extends Application {
                     "software",
                     "ebook",
                     "all"));
+                    // TK(future) (as strings) remove hyphen
+                    // lowercase first word (keep 2nd work proper-cased)
+                    // concatenate words
     private Button getButton;
 
     private Label message; // Message to user
@@ -118,8 +231,6 @@ public class GalleryApp extends Application {
     private final Thread apiThread = new Thread(
             new Runnable() {
 
-                private ItunesResponse itunesResponse;
-
                 /** Override so that it does downloading. */
                 @Override
                 public void run() { // Get Images
@@ -133,84 +244,50 @@ public class GalleryApp extends Application {
                         if (response.statusCode() != 200) { // check response
                             throw new IOException(response.toString());
                         } // if
-                        itunesResponse = GSON.<ItunesResponse>fromJson(response.body().trim(),
+                        // put URIs into some list or something
+                        // filter out duplicate URIs
+                            // convert to stream
+                            // distinct()
+                            // to map
+                        
+                        System.out.println("\n".repeat(2));
+                        System.out.println(response.body().trim());
+                        System.out.println("\n".repeat(2));
+                        itunesResponse = GSON.fromJson(response.body().trim(),
                                 ItunesResponse.class);
-                        if (itunesResponse.resultCount < 21) { // not enough images (nothing downloaded)
-                            complainAndReset(); // alert the user and stuff
-                        } else {
-                            // download images && put into Imageviews
-                            downloadIntoImageViews(itunesResponse);
-                            // After downloading, update UI elements
-                            updateUIAfterDownload();
-                        } // if-else
-                        state.set(State.AFTER_DOWNLOAD); // enables buttons and fills progress bar
+                        Platform.runLater(new Runnable() {
+
+                            @Override
+                            public void run() {
+                                if (itunesResponse.resultCount < 21) { // not enough images
+                                    // (nothing downloaded)
+                                    complainAndReset(); // alert the user and stuff
+                                } else {
+                                    // download images && put into Imageviews
+                                    downloadIntoImageViews(itunesResponse);
+                                    // After downloading, update UI elements
+                                    updateUIAfterDownload();
+                                } // if-else
+                                state.set(State.AFTER_DOWNLOAD); // enables buttons and fills progress bar
+                                // ^i know this is explicitly bad practice,
+                                // ^but i needed an automatic state change TK(future)
+                            } // run
+
+                        });
                     } catch (IOException | InterruptedException | JsonSyntaxException e) {
                         System.err.println(e);
                         e.printStackTrace();
                     } // try-catch
                 } // run
 
-                /** Alert the user, and afterwards reset button abilities. */
-                private void complainAndReset() {
-                    String errorMessage = "URI: " + request.toString() + "\n" + // URL of failed query
-                            "Exception: java.lang.IllegalArgumentException: "
-                            + itunesResponse.resultCount + "distinct results found, "
-                            + "but 21 or more are needed."; // toString of related exception
-                    // source:
-                    // https://openjfx.io/javadoc/17/javafx.controls/javafx/scene/control/Alert.html
-                    new Alert(AlertType.ERROR, errorMessage).showAndWait()
-                            .filter(r -> r == ButtonType.OK)
-                            .ifPresent(r -> {
-                                // ignore `r` (i.e. clicking of button by user)
-                                if (imageList.stream()
-                                        .anyMatch(i -> i.getImage().equals(defaultImage))) {
-                                    // do NOT re-enable buttons
-                                    reinitializeButtons();
-                                } // if
-                                message = messages.get("ERROR");
-                                // ^update to show error message, after alert window closed
-                            }); // Alert()...ifPresent()
-                } // complain
-
-                /** Update UI elements after a <strong>successful</strong> download. */
-                private void updateUIAfterDownload() {
-                    message = messages.get("AFTER_DOWNLOAD");
-                    // message replaced w/ query URL used
-                    message.setText(request.toString());
-                    // displayed images updated, with first 21 images downloaded
-                    imageGroups = imageList.stream()
-                            .collect(Collectors.partitioningBy(s -> imageList.indexOf(s) <= 20));
-                    // Update ALL downloaded images AT ONCE
-                    mainContent.getChildren().setAll(imageGroups.get(true));
-                } // updateUIAfterDownload
-
-                /**
-                 * Take image URIs, create {@code Image}s from said URIs,
-                 * then populate the {@code ImageView}s with said {@code Image}s.
-                 * 
-                 * @param ir represents the iTunes API's response, containing relevant
-                 *           name-values
-                 */
-                private void downloadIntoImageViews(ItunesResponse ir) {
-                    updateProgress(0.0);
-                    for (int i = 0; i < ir.resultCount; i++) {
-                        // source:
-                        // https://openjfx.io/javadoc/17/javafx.graphics/javafx/scene/image/ImageView.html
-                        imageList.get(i).setImage(new Image(ir.results[i].artworkUrl100));
-                        imageList.get(i).setFitWidth(256);
-                        imageList.get(i).setPreserveRatio(true);
-                        imageList.get(i).setSmooth(true);
-                        imageList.get(i).setCache(true);
-                        // progress bar loading%...
-                        updateProgress(1.0 * i / ir.resultCount);
-                    } // for
-                } // downloadIntoImageViews
-
                 /** Format the URL used to query the iTunes API. */
                 private void formatQueryURL() {
                     String term = URLEncoder.encode(queryField.getText(), StandardCharsets.UTF_8);
-                    String media = URLEncoder.encode(queryDropDown.getValue(), StandardCharsets.UTF_8);
-                    String query = "?term=%1$s&media=%2$smedia=200".formatted(term, media);
+                    String media = URLEncoder.encode(queryDropDown.getValue(),
+                                                    StandardCharsets.UTF_8);
+                    // ^TK(future) do string manipulation on queryDropDown,
+                    // ^while making queryDropDown itself more human-readable
+                    String query = "?term=%1$s&media=%2$s&limit=200".formatted(term, media);
                     request = HttpRequest.newBuilder()
                             .uri(URI.create("https://itunes.apple.com/search" + query))
                             .build();
@@ -218,27 +295,34 @@ public class GalleryApp extends Application {
             } // new Runnable
     ); // API_THREAD = new Thread
 
-    private ChangeListener<State> runStateChangeListener = new ChangeListener<State>() {
+    private final EventHandler<ActionEvent> toggler = e -> {
+        if (playButton.getText().equals("Play")) {
+            playButton.setText("Pause");
+            // ^toggles to "Play" AFTER clicking
+            state.set(State.AFTER_DOWNLOAD);
+        } else {
+            playButton.setText("Play");
+            // ^toggles to "Pause" AFTER clicking
+            state.set(State.PLAYING);
+        } // if-else
+    };
+
+    private final ChangeListener<State> runStateChangeListener = new ChangeListener<State>() {
+
         /** Currently only changes {@code message} Property based on {@code state}. */
         @Override
         public void changed(ObservableValue<? extends State> observable,
                 State oldValue,
                 State newValue) {
-            message = messages.get(((State) state.getBean()).name());
+            message = messages.get(((State) state.getValue()).name());
             // ^update message based on state
             switch (newValue) {
                 case DURING_DOWNLOAD:
                     apiThread.start(); // download!
-                    state.set(State.AFTER_DOWNLOAD);
-                    // ^i know this is explicitly bad practice,
-                    // ^but i needed an automatic state change TK(future)
                     break;
                 case PLAYING:
                     // Turn to Pause button
-                    playButton.setOnAction(e -> {
-                        playButton.setText("Play"); // TURNS to "Play" AFTER clicking
-                        state.set(State.AFTER_DOWNLOAD);
-                    }); // playButton.setOnAction
+                    playButton.setOnAction(toggler); // playButton.setOnAction
                     // Random Replacement
                     KeyFrame keyFrame = new KeyFrame(Duration.seconds(2),
                         event -> {
@@ -263,6 +347,7 @@ public class GalleryApp extends Application {
                     timeline.play();
                     break;
                 case AFTER_DOWNLOAD:
+                    playButton.setOnAction(toggler);
                     playButton.setDisable(false); // enabled
                     getButton.setDisable(false); // enabled
                     // progress bar 100%
@@ -295,10 +380,7 @@ public class GalleryApp extends Application {
         // ----------------------(Search Bar)---------------------- //
         // Play/Pause Button
         playButton = new Button("Play"); // "Pause"
-        playButton.setOnAction(e -> {
-            playButton.setText("Pause"); // TURNS to "Pause" AFTER clicking
-            state.set(State.PLAYING);
-        }); // playButton.setOnAction
+        playButton.setOnAction(toggler); // playButton.setOnAction
 
         // Query Term Field
         queryField = new TextField("Radiohead"); // default query item provided
@@ -325,8 +407,10 @@ public class GalleryApp extends Application {
         // ^populate those 20 blanks with the default image
         imageGroups = imageList.stream()
                 .collect(Collectors.partitioningBy(s -> imageList.indexOf(s) <= 20));
-        mainContent.setHgap(0); // no gaps between tiles
-        mainContent.setMaxSize(256, 256); // square tiles
+        mainContent.setOrientation(Orientation.HORIZONTAL);
+        mainContent.setHgap(1); // no gaps between tiles TK 
+        mainContent.setVgap(1); // TK 
+        mainContent.setMaxSize(1280, 720); // square tiles
         mainContent.setPrefColumns(5); // five columns of tiles
         TilePane.setMargin(mainContent, Insets.EMPTY); // no margins
 
@@ -356,13 +440,19 @@ public class GalleryApp extends Application {
 
         // add children
         searchBar.getChildren().addAll(playButton,
-                queryFieldLabel,
-                queryDropDownLabel,
+                queryFieldLabel, queryField,
+                queryDropDownLabel, queryDropDown,
                 getButton);
+        searchBar.setPadding(new Insets(10));
         mainContent.getChildren().addAll(imageGroups.get(true));
         // ^initialize tilePane with first 20 imageviews
         statusBar.getChildren().addAll(progressBar, itunesAttribution);
+        statusBar.setPadding(new Insets(10));
         root.getChildren().addAll(searchBar, mainContent, statusBar);
+
+        // to add TK(future)
+        // searchBar.setHgrow(queryField, Priority.ALWAYS);
+        // searchBar.setAlignment(Pos.CENTER_LEFT); ??
 
     } // start
 
@@ -394,12 +484,83 @@ public class GalleryApp extends Application {
     } // updateProgress
 
     /**
-     * Helper method. Constructs a new default {@code Image} inside an
-     * {@code ImageView}.
+     * Helper method. Constructs a new default {@code Image},
+     * wrapped inside an {@code ImageView}.
+     * 
+     * @return a new default {@code Image} wrapped inside an
+     *         {@code ImageView}
      */
     private ImageView newDefaultImageView() {
-        return new ImageView(defaultImage); 
+        ImageView iv = new ImageView();
+        setImage(iv, defaultImage);
+        return iv;
     } // newDefaultImageView
+
+    /**
+     * Set the {@code Image} of an {@code ImageView} in `imageList`.
+     * 
+     * @param iv    the {@code ImageView} to be modified
+     * @param image the {@code Image} which the {@code ImageView} is going to wrap
+     */
+    private void setImage(ImageView iv, Image image) {
+        // source:
+        // https://openjfx.io/javadoc/17/javafx.graphics/javafx/scene/image
+        // /ImageView.html
+        iv.setImage(image);
+        iv.setFitWidth(120);
+        iv.setPreserveRatio(true);
+        iv.setSmooth(true);
+        iv.setCache(true);
+    } // setImage/** Alert the user, and afterwards reset button abilities. */
+
+    private void complainAndReset() {
+        String errorMessage = "URI: " + request.toString() + "\n\n" + // failed query URL
+                "Exception: java.lang.IllegalArgumentException: "
+                + itunesResponse.resultCount + " distinct results found, "
+                + "but 21 or more are needed."; // toString of related exception
+        // source:
+        // https://openjfx.io/javadoc/17/javafx.controls/javafx/scene/control/Alert.html
+        new Alert(AlertType.ERROR, errorMessage).showAndWait()
+                .filter(r -> r == ButtonType.OK)
+                .ifPresent(r -> {
+                    // ignore `r` (i.e. clicking of button by user)
+                    if (imageList.stream()
+                            .anyMatch(i -> i.getImage().equals(defaultImage))) {
+                        // do NOT re-enable buttons
+                        reinitializeButtons();
+                    } // if
+                    message = messages.get("ERROR");
+                    // ^update to show error message, after alert window closed
+                }); // Alert()...ifPresent()
+    } // complain
+
+    /** Update UI elements after a <strong>successful</strong> download. */
+    private void updateUIAfterDownload() {
+        message = messages.get("AFTER_DOWNLOAD"); // TK should it be State.AFTER_DOWNLOAD?
+        // message replaced w/ query URL used
+        message.setText(request.toString());
+        // displayed images updated, with first 21 images downloaded
+        imageGroups = imageList.stream()
+                .collect(Collectors.partitioningBy(s -> imageList.indexOf(s) <= 20));
+        // Update ALL downloaded images AT ONCE
+        mainContent.getChildren().setAll(imageGroups.get(true));
+    } // updateUIAfterDownload
+
+    /**
+     * Take image URIs, create {@code Image}s from said URIs,
+     * then populate the {@code ImageView}s with said {@code Image}s.
+     * 
+     * @param ir represents the iTunes API's response, containing relevant
+     *           name-values
+     */
+    private void downloadIntoImageViews(ItunesResponse ir) {
+        updateProgress(0.0);
+        for (int i = 0; i < ir.resultCount; i++) {
+            setImage(imageList.get(i), new Image(ir.results[i].artworkUrl100));
+            // progress bar loading%...
+            updateProgress(1.0 * i / ir.resultCount);
+        } // for
+    } // downloadIntoImageViews
 
     /** {@inheritDoc} */
     @Override
