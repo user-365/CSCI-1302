@@ -1,7 +1,5 @@
 package cs1302.omega;
 
-import cs1302.game.DemoGame;
-
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.control.Label;
@@ -37,11 +35,8 @@ public class OmegaApp extends Application {
         Label instructions
             = new Label("Move left/right with arrow keys; click rectangle to teleport.");
 
-        // demo game provided with the starter code
-        DemoGame game = new DemoGame(640, 240);
-
         // setup scene
-        VBox root = new VBox(banner, notice, instructions, game);
+        VBox root = new VBox(banner, notice, instructions);
         Scene scene = new Scene(root);
 
         // setup stage
@@ -50,9 +45,6 @@ public class OmegaApp extends Application {
         stage.setOnCloseRequest(event -> Platform.exit());
         stage.sizeToScene();
         stage.show();
-
-        // play the game
-        game.play();
 
     } // start
 

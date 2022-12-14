@@ -16,8 +16,12 @@ Markdown is transformed into nice looking HTML.
 ### App Category:
 API
 
+### Github URL:
+``
+
 ### Top-level Description:
 From user-inputted _describing_ keywords, to a piece of related artwork and a color palette constructed from it, where "describing" means "describing the aesthetic meanings or aspects." This means the returned artworks have been described by the curators of the Art Institute using the inputted keywords, and the keywords do not correspond to the piece's title, author, date, or any such objective metadata.
+Has a "NEXT" and "PREVIOUS" buttons to navigate between search results
 
 ### Purpose:
 For the end user to find inspirational artworks and color palettes that **evoke** or **are associated with** the specified themes or moods, to perhaps to aid the user in creating their own artworks, or for decorating a "mood board" to convey some aesthetic style.
