@@ -1,4 +1,4 @@
-# CS-1001 (pseudonym)
+# CSCI-1302
 Course Name: Software Development
 
 ## Project 1
